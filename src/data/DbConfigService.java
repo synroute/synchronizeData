@@ -27,7 +27,7 @@ public class DbConfigService {
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();	
 			DbUtil.closeST(stmt);
-			szSql = String.format("insert into SYNCHRON_CFG_DBCONN (DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST) values ('%s','%s','%s','%s','%s','%s',0,0)", dbType,dbIp,dbPort,dbSid,dbUser,dbPassword);
+			szSql = String.format("insert into SYNCHRON_CFG_DBCONN (DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST,ID) values ('%s','%s','%s','%s','%s','%s',0,0,S_SYNCHRON_CFG_DBCONN.nextval)", dbType,dbIp,dbPort,dbSid,dbUser,dbPassword);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();	
 			DbUtil.closeST(stmt);
@@ -65,7 +65,7 @@ public class DbConfigService {
 		ResultSet rs = null;
 		JSONArray jsonArray = new JSONArray();
 		try {
-			String sql = "select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST from SYNCHRON_CFG_DBCONN where type =0";
+			String sql = "select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST,ID from SYNCHRON_CFG_DBCONN where type =0";
 			conn = DbUtil.getConnection();
 			stmt = conn.prepareStatement(sql);
 			rs = stmt.executeQuery();
@@ -79,6 +79,7 @@ public class DbConfigService {
 				jsonObject.put("dbPassword", rs.getString("DBPWD"));
 				jsonObject.put("type", rs.getString("TYPE"));
 				jsonObject.put("passTest", rs.getString("PASSTEST"));
+				jsonObject.put("tableId", rs.getString("ID"));
 				jsonArray.add(jsonObject);
 			}
 		} catch (Exception e) {
@@ -145,7 +146,7 @@ public class DbConfigService {
 		String szSql = "";
 		try {
 			dbConn = DbUtil.getConnection();
-			szSql = String.format("insert into SYNCHRON_CFG_DBCONN (DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST) values ('%s','%s','%s','%s','%s','%s',1,0)", dbType,dbIp,dbPort,dbSid,dbUser,dbPassword);
+			szSql = String.format("insert into SYNCHRON_CFG_DBCONN (DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST,ID) values ('%s','%s','%s','%s','%s','%s',1,0,S_SYNCHRON_CFG_DBCONN.nextval)", dbType,dbIp,dbPort,dbSid,dbUser,dbPassword);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();	
 			DbUtil.closeST(stmt);
@@ -161,16 +162,16 @@ public class DbConfigService {
 		return true;
 	}
 
-	public static boolean dropTargetDbConfig(String dbType, String dbIp, String dbPort, String dbSid, String dbUser,
-			String dbPassword) {
+	public static boolean dropTargetDbConfig(String tableId) {
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		String szSql = "";
 		try {
 			dbConn = DbUtil.getConnection();
-			szSql = String.format("delete from SYNCHRON_CFG_DBCONN  where DBTYPE='%s' and DBIP='%s' and DBPORT='%s' and DBSID='%s' and DBUSER='%s' and DBPWD='%s' and TYPE = 1 ", dbType,dbIp,dbPort,dbSid,dbUser,dbPassword);
+			szSql = String.format("delete from SYNCHRON_CFG_DBCONN  where ID='%s' ", tableId);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();	
+			dropTargetTableConfig(tableId);
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -183,13 +184,34 @@ public class DbConfigService {
 		return true;
 	}
 
+	private static void dropTargetTableConfig(String tableId) {
+		Connection dbConn = null;
+		PreparedStatement stmt = null;
+		String szSql = "";
+		try {
+			dbConn = DbUtil.getConnection();
+			szSql = String.format("delete from SYNCHRON_CFG_TABLE  where TABLEID='%s' ", tableId);
+			stmt = dbConn.prepareStatement(szSql);
+			stmt.execute();	
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return;
+		}  catch (Exception e) {
+			e.printStackTrace();
+			return;
+		} finally {
+			DbUtil.closeDbST(stmt, dbConn);
+		}	
+		return;
+	}
+
 	public static JSONArray getTargetDbConfig() {
 		Connection conn = null;
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		JSONArray jsonArray = new JSONArray();
 		try {
-			String sql = "select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST from SYNCHRON_CFG_DBCONN where type =1";
+			String sql = "select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST,ID from SYNCHRON_CFG_DBCONN where type =1";
 			conn = DbUtil.getConnection();
 			stmt = conn.prepareStatement(sql);
 			rs = stmt.executeQuery();
@@ -203,6 +225,7 @@ public class DbConfigService {
 				jsonObject.put("dbPassword", rs.getString("DBPWD"));
 				jsonObject.put("type", rs.getString("TYPE"));
 				jsonObject.put("passTest", rs.getString("PASSTEST"));
+				jsonObject.put("tableId", rs.getString("ID"));
 				jsonArray.add(jsonObject);
 			}
 		} catch (Exception e) {

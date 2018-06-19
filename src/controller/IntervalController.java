@@ -46,7 +46,7 @@ public class IntervalController extends HttpServlet {
 		response.setContentType("text/html;charset=UTF-8");
 		PrintWriter printWriter = response.getWriter();
 		String szActionValue = request.getParameter("action");
-		if (szActionValue.equals("saveInterval")) {
+		if (szActionValue.equals("saveInterval")) {//保存同步间隔
 			try {
 				String msg = "";
 				int interval =Integer.valueOf(request.getParameter("interval"));
@@ -59,7 +59,7 @@ public class IntervalController extends HttpServlet {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		} else if (szActionValue.equals("getIntervalAndState")) {
+		} else if (szActionValue.equals("getIntervalAndState")) {//获取同步间隔和启动状态
 			try {
 				JSONObject intervalAndState = IntervalService.getIntervalAndState();
 				printWriter.print(intervalAndState.toString());

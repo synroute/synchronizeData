@@ -45,14 +45,14 @@ public class TableConfigController extends HttpServlet {
 		response.setContentType("text/html;charset=UTF-8");
 		PrintWriter printWriter = response.getWriter();
 		String szActionValue = request.getParameter("action");
-		if (szActionValue.equals("getAllTableFromSource")) {
+		if (szActionValue.equals("getAllTableFromSource")) {//获取来源数据库所有表
 			try {
 				JSONArray tableInfo = TableConfigService.getAllTableFromSource();
 				printWriter.print(tableInfo.toString());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		} else if (szActionValue.equals("getAllFieldByTableName")) {
+		} else if (szActionValue.equals("getAllFieldByTableName")) {//根据表名称获取所有列
 			String tableName = request.getParameter("tableName");
 			try {
 				JSONArray fieldInfo = TableConfigService.getAllFieldByTableName(tableName);
@@ -60,7 +60,7 @@ public class TableConfigController extends HttpServlet {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		} else if (szActionValue.equals("saveTableAndField")) {
+		} else if (szActionValue.equals("saveTableAndField")) {//保存需要更新的表和标识列名
 			String data = request.getParameter("data");
 			String msg = "";
 			if (!TableConfigService.saveTableAndField(data)) {
@@ -69,14 +69,14 @@ public class TableConfigController extends HttpServlet {
 				msg = "保存成功";
 			}
 			printWriter.write(msg);
-		} else if (szActionValue.equals("getTableAndField")) {
+		} else if (szActionValue.equals("getTableAndField")) {//获取需要更新的表和标识列名
 			try {
 				JSONArray tableInfo = TableConfigService.getTableAndField();
 				printWriter.print(tableInfo.toString());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}  else if (szActionValue.equals("testTable")) {
+		}  else if (szActionValue.equals("testTable")) {//测试表（单个测试）
 			String tableName = request.getParameter("tableName");
 			String msg = "";
 			msg = TableConfigService.testTable(tableName);

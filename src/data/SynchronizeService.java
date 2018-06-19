@@ -76,24 +76,21 @@ public class SynchronizeService {
 			if (!jsonObject.get("identity").isJsonNull()) {
 				identity  = jsonObject.get("identity").getAsString();
 			}
+			String tableId = jsonObject.get("tableId").getAsString();
+			
 			//根据表名，字段名，记录标识从来源表中拿出需更新的数据，转码utf-8
 			List<Map<String, Object>> listData = new ArrayList<Map<String, Object>>();
 			queryDataFromSourceDb(tableName,fieldName,identity,mapDbInfo,listData);
 			
 			//将获取到的数据同步到目标表中，插入失败事务回滚，插入成功更新记录标识
-			insertDataToTargetDb(tableName,fieldName,mapDbInfo,listData);
+			insertDataToTargetDb(tableName,fieldName,mapDbInfo,listData,tableId);
 			
 		}
-		
-		
 	}
 
 	//将获取到的数据同步到目标表中，插入失败事务回滚，插入成功更新记录标识
 	private static void insertDataToTargetDb(String tableName, String fieldName, Map<String, Object> mapDbInfo,
-			List<Map<String, Object>> listData) {
-		String targetUrl = mapDbInfo.get("targetUrl").toString();
-		String targetUser = mapDbInfo.get("targetUser").toString();
-		String targetPwd = mapDbInfo.get("targetPwd").toString();
+			List<Map<String, Object>> listData, String tableId) {	
 		//表列名 list
 		List<Map<String, String>> listCol = new ArrayList<Map<String, String>>();
 		Connection dbConn = null;
@@ -102,8 +99,33 @@ public class SynchronizeService {
 		String identity = "";
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+		String targetUrl = "";
+		String targetUser = "";
+		String targetPwd = "";
 		try {
-			dbConn = DbUtil.getConnection(targetUrl, targetUser, targetPwd);
+			dbConn = DbUtil.getConnection();
+			szSql = String.format("select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST from SYNCHRON_CFG_DBCONN where type =1 and ID = '%s'", tableId);
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				if (rs.getString(1).equals("oracle")) {
+					targetUrl += "jdbc:oracle:thin:@";
+					targetUrl += rs.getString(2);
+					targetUrl += ":";
+					targetUrl += rs.getString(3);
+					targetUrl += ":";
+					targetUrl += rs.getString(4);
+				}
+				targetUser = rs.getString(5);
+				targetPwd = rs.getString(6);	
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			DbUtil.closeAll(rs, stmt, dbConn);
+		}	
+		try {
+			dbConn = DbUtil.getConnection(targetUrl, targetUser, targetPwd);	
 			szSql = String.format("SELECT COLUMN_NAME,DATA_TYPE FROM USER_TAB_COLUMNS WHERE TABLE_NAME = '%s'", tableName);
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
@@ -126,7 +148,6 @@ public class SynchronizeService {
 		} finally {
 			DbUtil.closeAll(rs, stmt, dbConn);
 		}	
-		
 		try {
 			//再次获取连接
 			dbConn = DbUtil.getConnection(targetUrl, targetUser, targetPwd);
@@ -162,14 +183,14 @@ public class SynchronizeService {
 			}
 			dbConn.commit();
 			//更新同步数据标识
-			updateIdentity(tableName,fieldName,identity);
+			updateIdentity(tableName,fieldName,identity,tableId);
 			
 		} catch (Exception e) {
 			try {
-                dbConn.rollback();
-            } catch (SQLException e1) {
-                e1.printStackTrace();
-            }
+				dbConn.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 			e.printStackTrace();
 		} finally {
 			try {
@@ -178,13 +199,12 @@ public class SynchronizeService {
 				e.printStackTrace();
 			}
 			DbUtil.closeAll(rs, stmt, dbConn);
-		}	
-		
+		}		
 	}
 
 	//更新同步数据标识
 	@SuppressWarnings("resource")
-	private static void updateIdentity(String tableName, String fieldName, String identity) throws Exception {
+	private static void updateIdentity(String tableName, String fieldName, String identity, String tableId) throws Exception {
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		String szSql = "";
@@ -192,10 +212,10 @@ public class SynchronizeService {
 			dbConn = DbUtil.getConnection();
 			dbConn.setAutoCommit(false);
 			if (!identity.equals("")) {
-				szSql = String.format("delete from SYNCHRON_CFG_TABLE where TABLENAME ='%s' and FIELD ='%s' ", tableName,fieldName);
+				szSql = String.format("delete from SYNCHRON_CFG_TABLE where TABLENAME ='%s' and FIELD ='%s' and TABLEID = '%s' ", tableName,fieldName,tableId);
 				stmt = dbConn.prepareStatement(szSql);
 				stmt.execute();	
-				szSql = String.format("insert into SYNCHRON_CFG_TABLE (TABLENAME,FIELD,IDENTIFY) values ('%s','%s','%s')", tableName,fieldName,identity);
+				szSql = String.format("insert into SYNCHRON_CFG_TABLE (TABLENAME,FIELD,IDENTIFY,TABLEID) values ('%s','%s','%s','%s')", tableName,fieldName,identity,tableId);
 				stmt = dbConn.prepareStatement(szSql);
 				stmt.execute();	
 				dbConn.commit();				
@@ -318,7 +338,7 @@ public class SynchronizeService {
 		ResultSet rs = null;
 		try {
 			dbConn = DbUtil.getConnection();
-			szSql = "select TABLENAME,FIELD,IDENTIFY from SYNCHRON_CFG_TABLE";
+			szSql = "select TABLENAME,FIELD,IDENTIFY,TABLEID from SYNCHRON_CFG_TABLE order by TABLEID";
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while (rs.next()) {
@@ -330,6 +350,7 @@ public class SynchronizeService {
 					identity = rs.getString(3);
 				}
 				mapTableInfo.put("identity",identity);
+				mapTableInfo.put("tableId", rs.getString(4));
 				listTableInfo.add(mapTableInfo);
 			}
 			String tableInfo = JSONArray.fromObject(listTableInfo).toString(); 
@@ -348,9 +369,11 @@ public class SynchronizeService {
 		String szSql = "";
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
+//		int targetCount = 0;
+		ArrayList<Map<String, Object>> target = new ArrayList<Map<String, Object>>();
 		try {
 			dbConn = DbUtil.getConnection();
-			szSql = "select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST from SYNCHRON_CFG_DBCONN";
+			szSql = "select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST,ID from SYNCHRON_CFG_DBCONN";
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while (rs.next()) {
@@ -369,10 +392,20 @@ public class SynchronizeService {
 					mapDbInfo.put("sourceUser", rs.getString(5));
 					mapDbInfo.put("sourcePwd", rs.getString(6));
 				} else if (type == 1) {
-					mapDbInfo.put("targetUrl", url);
-					mapDbInfo.put("targetUser", rs.getString(5));
-					mapDbInfo.put("targetPwd", rs.getString(6));
+//					targetCount++;
+					Map<String , Object> mapTargetDbInfo = new HashMap<>();
+					String targetId = rs.getString(5);
+					mapTargetDbInfo.put("targetId", targetId);
+					mapTargetDbInfo.put("targetUrl", url);
+					mapTargetDbInfo.put("targetUser", rs.getString(5));
+					mapTargetDbInfo.put("targetPwd", rs.getString(6));
+					target.add(mapTargetDbInfo);
+//					mapDbInfo.put("targetUrl"+targetCount, url);
+//					mapDbInfo.put("targetUser"+targetCount, rs.getString(5));
+//					mapDbInfo.put("targetPwd"+targetCount, rs.getString(6));
 				}
+				mapDbInfo.put("target", target);
+//				mapDbInfo.put("targetCount", targetCount);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

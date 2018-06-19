@@ -47,7 +47,7 @@ public class SourceDbConfig  extends HttpServlet  {
 		response.setContentType("text/html;charset=UTF-8");
 		PrintWriter printWriter = response.getWriter();
 		String szActionValue = request.getParameter("action");
-		if (szActionValue.equals("saveSourceDbConfig")) {
+		if (szActionValue.equals("saveSourceDbConfig")) {//保存来源数据库
 			try {
 				String msg = "";
 				String dbType = request.getParameter("dbType");
@@ -65,14 +65,14 @@ public class SourceDbConfig  extends HttpServlet  {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		} else if (szActionValue.equals("getSourceDbConfig")) {
+		} else if (szActionValue.equals("getSourceDbConfig")) {//获取来源数据库配置
 			try {
 				JSONArray sourceDbConfig = DbConfigService.getSourceDbConfig();
 				printWriter.print(sourceDbConfig.toString());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		} else if (szActionValue.equals("testSourceDbConfig")) {
+		} else if (szActionValue.equals("testSourceDbConfig")) {//测试来源数据库连接
 			String msg = "";
 			if (!DbConfigService.testSourceDbConfig()) {
 				msg = "获取来源数据库连接失败";

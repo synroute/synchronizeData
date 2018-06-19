@@ -128,34 +128,43 @@ public class TableConfigService {
 		PreparedStatement stmt = null;
 		String szSql = "";
 		ResultSet rs = null;
+		int tableId = 0;
 		try {
 			dbConn = DbUtil.getConnection();
-			dbConn.setAutoCommit(false);
-			JsonParser jsonParser=new JsonParser();
-			JsonArray jsonArray=jsonParser.parse(data).getAsJsonArray();
-			for (int i = 0; i < jsonArray.size(); i++) {
-				JsonObject jsonObject = (JsonObject) jsonArray.get(i);
-				String tableName  = jsonObject.get("tableName").getAsString();
-				String fieldName  = jsonObject.get("fieldName").getAsString();
-				int count = 0;
-				szSql = String.format("SELECT count(*) FROM SYNCHRON_CFG_TABLE  where TABLENAME='%s' and FIELD ='%s' ", tableName,fieldName) ;
-				stmt = dbConn.prepareStatement(szSql);
-				rs = stmt.executeQuery();
-				if (rs.next()) {
-					count = rs.getInt(1);
+			dbConn.setAutoCommit(false);	
+			szSql = String.format("SELECT TABLEID FROM SYNCHRON_CFG_DBCONN  where TYPE= 1") ;
+			PreparedStatement stmt2 = dbConn.prepareStatement(szSql);
+			ResultSet rs2 = stmt2.executeQuery();
+			while (rs2.next()) {
+				tableId = rs.getInt(1);
+				JsonParser jsonParser=new JsonParser();
+				JsonArray jsonArray=jsonParser.parse(data).getAsJsonArray();
+				for (int i = 0; i < jsonArray.size(); i++) {
+					JsonObject jsonObject = (JsonObject) jsonArray.get(i);
+					String tableName  = jsonObject.get("tableName").getAsString();
+					String fieldName  = jsonObject.get("fieldName").getAsString();
+					int count = 0;
+					szSql = String.format("SELECT count(*) FROM SYNCHRON_CFG_TABLE  where TABLENAME='%s' and FIELD ='%s' and TABLEID = %d ", tableName,fieldName,tableId) ;
+					stmt = dbConn.prepareStatement(szSql);
+					rs = stmt.executeQuery();
+					if (rs.next()) {
+						count = rs.getInt(1);
+					}
+					DbUtil.closeRs(rs,stmt);
+					if(count == 0) {
+						szSql = String.format("delete from  SYNCHRON_CFG_TABLE  where TABLENAME =='%s' and TABLEID = %d",tableName,tableId);
+						stmt = dbConn.prepareStatement(szSql);
+						stmt.execute();	
+						DbUtil.closeST(stmt);	
+						szSql = String.format("insert into SYNCHRON_CFG_TABLE (TABLENAME,FIELD,TABLEID) values ('%s','%s',%d)", tableName,fieldName,tableId);
+						stmt = dbConn.prepareStatement(szSql);
+						stmt.execute();	
+						DbUtil.closeST(stmt);					
+					}	
 				}
-				DbUtil.closeAll(rs,stmt,dbConn);
-				if(count == 0) {
-					szSql = String.format("delete from  SYNCHRON_CFG_TABLE  where TABLENAME =='%s'",tableName);
-					stmt = dbConn.prepareStatement(szSql);
-					stmt.execute();	
-					DbUtil.closeST(stmt);	
-					szSql = String.format("insert into SYNCHRON_CFG_TABLE (TABLENAME,FIELD) values ('%s','%s')", tableName,fieldName);
-					stmt = dbConn.prepareStatement(szSql);
-					stmt.execute();	
-					DbUtil.closeST(stmt);					
-				}	
 			}
+			DbUtil.closeRs(rs2,stmt2);
+//			DbUtil.closeAll(rs2,stmt2,dbConn);
 			dbConn.commit();				
 		} catch (SQLException e) {
 			try {

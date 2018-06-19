@@ -44,7 +44,7 @@ public class TargetDbConfig extends HttpServlet {
 		response.setContentType("text/html;charset=UTF-8");
 		PrintWriter printWriter = response.getWriter();
 		String szActionValue = request.getParameter("action");
-		if (szActionValue.equals("addTargetDbConfig")) {
+		if (szActionValue.equals("addTargetDbConfig")) {//添加目标数据库配置
 			try {
 				String msg = "";
 				String dbType = request.getParameter("dbType");
@@ -62,16 +62,11 @@ public class TargetDbConfig extends HttpServlet {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		} else if (szActionValue.equals("dropTargetDbConfig")) {
+		} else if (szActionValue.equals("dropTargetDbConfig")) {//删除目标数据库配置
 			try {
 				String msg = "";
-				String dbType = request.getParameter("dbType");
-				String dbIp = request.getParameter("dbIp");
-				String dbPort = request.getParameter("dbPort");
-				String dbSid = request.getParameter("dbSid");
-				String dbUser = request.getParameter("dbUser");
-				String dbPassword = request.getParameter("dbPassword");
-				if (!DbConfigService.dropTargetDbConfig(dbType,dbIp,dbPort,dbSid,dbUser,dbPassword)) {
+				String tableId = request.getParameter("tableId");
+				if (!DbConfigService.dropTargetDbConfig(tableId)) {
 					msg = "删除失败";
 				} else {
 					msg = "删除成功";
@@ -80,14 +75,14 @@ public class TargetDbConfig extends HttpServlet {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		} else if (szActionValue.equals("getTargetDbConfig")) {
+		} else if (szActionValue.equals("getTargetDbConfig")) {//获取目标数据库配置
 			try {
 				JSONArray targetDbConfig = DbConfigService.getTargetDbConfig();
 				printWriter.print(targetDbConfig.toString());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		} else if (szActionValue.equals("testTargetDbConfig")) {
+		} else if (szActionValue.equals("testTargetDbConfig")) {//测试目标数据库连接
 			String msg = "";
 			String dbType = request.getParameter("dbType");
 			String dbIp = request.getParameter("dbIp");
