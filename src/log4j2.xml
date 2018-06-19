@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="off" monitorInterval="1800">
+	<properties>
+		<property name="LOG_HOME">d:/log/synchronizeServer</property>
+		<property name="FILE_NAME">mylog</property>
+	</properties>
+
+	<Appenders>
+	
+		<RollingRandomAccessFile name="root-log"
+            fileName="${LOG_HOME}/synchronizeServer.log" filePattern="${LOG_HOME}/$${date:yyyy-MM}/${FILE_NAME}-%d{yyyy-MM-dd}-%i.log.gz">
+			<PatternLayout
+                pattern="%date{yyyy-MM-dd HH:mm:ss.SSS} %level [%thread][%file:%line] - %msg%n" />
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="100 MB" />
+			</Policies>
+			<DefaultRolloverStrategy max="20" />
+		</RollingRandomAccessFile>
+
+		<RollingRandomAccessFile name="running-log"
+            fileName="${LOG_HOME}/${FILE_NAME}.log" filePattern="${LOG_HOME}/$${date:yyyy-MM}/${FILE_NAME}-%d{yyyy-MM-dd}-%i.log.gz">
+			<PatternLayout
+                pattern="%date{yyyy-MM-dd HH:mm:ss.SSS} %level [%thread][%file:%line] - %msg%n" />
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="100 MB" />
+			</Policies>
+			<DefaultRolloverStrategy max="20" />
+		</RollingRandomAccessFile>
+		
+		<RollingRandomAccessFile name="dbpool-log"
+            fileName="${LOG_HOME}/dbpool.log" filePattern="${LOG_HOME}/$${date:yyyy-MM}/dbpool-%d{yyyy-MM-dd}-%i.log.gz">
+			<PatternLayout
+                pattern="%date{yyyy-MM-dd HH:mm:ss.SSS} %level [%thread][%file:%line] - %msg%n" />
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="100 MB" />
+			</Policies>
+			<DefaultRolloverStrategy max="20" />
+		</RollingRandomAccessFile>
+		
+		<RollingRandomAccessFile name="dbdetegator-log"
+            fileName="${LOG_HOME}/dbdetegator.log" filePattern="${LOG_HOME}/$${date:yyyy-MM}/dbdetegator-%d{yyyy-MM-dd}-%i.log.gz">
+			<PatternLayout
+                pattern="%date{yyyy-MM-dd HH:mm:ss.SSS} %level [%thread][%file:%line] - %msg%n" />
+			<Policies>
+				<TimeBasedTriggeringPolicy />
+				<SizeBasedTriggeringPolicy size="100 MB" />
+			</Policies>
+			<DefaultRolloverStrategy max="20" />
+		</RollingRandomAccessFile>
+   
+
+	</Appenders>
+
+	<Loggers>
+		<Logger name="synchronizeServer" level="trace" additivity="true">
+			<AppenderRef ref="running-log" />
+		</Logger>
+		<Logger name="dbpool" level="trace" additivity="true">
+			<AppenderRef ref="dbpool-log" />
+		</Logger>
+		<Logger name="dbdetegator" level="trace" additivity="true">
+			<AppenderRef ref="dbdetegator-log" />
+		</Logger>
+		<Root level="error">
+			<AppenderRef ref="root-log" />
+		</Root>
+	</Loggers>
+</Configuration>
