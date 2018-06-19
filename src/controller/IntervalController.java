@@ -17,7 +17,7 @@ import net.sf.json.JSONObject;
 /**
  * Servlet implementation class IntervalController
  */
-@WebServlet("/IntervalController")
+@SuppressWarnings("all")
 public class IntervalController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        

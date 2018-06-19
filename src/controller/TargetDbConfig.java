@@ -15,7 +15,7 @@ import net.sf.json.JSONArray;
 /**
  * Servlet implementation class TargetDbConfig
  */
-@WebServlet("/TargetDbConfig")
+@SuppressWarnings("all")
 public class TargetDbConfig extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        

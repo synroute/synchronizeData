@@ -16,7 +16,7 @@ import net.sf.json.JSONArray;
 /**
  * Servlet implementation class tableConfigController
  */
-@WebServlet("/tableConfigController")
+@SuppressWarnings("all")
 public class TableConfigController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
