@@ -102,8 +102,8 @@ public class SynchronizeController extends HttpServlet {
 
 //线程
 class MyThread1 extends Thread {  
-//	int interval = SynchronizeService.getInterval();
-	int interval = 5000;
+	int interval = SynchronizeService.getInterval();
+//	int interval = 5000;
     public void run() {  
         while (!SynchronizeController.getStopThread()) {// 线程未中断执行循环  
             try {  
