@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd" id="WebApp_ID" version="3.1">
   <display-name>synchronizeData</display-name>
-  
   <welcome-file-list>
     <welcome-file>index.html</welcome-file>
     <welcome-file>index.htm</welcome-file>
@@ -19,5 +18,45 @@
   <servlet-mapping>
     <servlet-name>SynchronizeController</servlet-name>
     <url-pattern>/SynchronizeController</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>SourceDbConfig</display-name>
+    <servlet-name>SourceDbConfig</servlet-name>
+    <servlet-class>controller.SourceDbConfig</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>SourceDbConfig</servlet-name>
+    <url-pattern>/SourceDbConfig</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>TargetDbConfig</display-name>
+    <servlet-name>TargetDbConfig</servlet-name>
+    <servlet-class>controller.TargetDbConfig</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>TargetDbConfig</servlet-name>
+    <url-pattern>/TargetDbConfig</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>IntervalController</display-name>
+    <servlet-name>IntervalController</servlet-name>
+    <servlet-class>controller.IntervalController</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>IntervalController</servlet-name>
+    <url-pattern>/IntervalController</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>TableConfigController</display-name>
+    <servlet-name>TableConfigController</servlet-name>
+    <servlet-class>controller.TableConfigController</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>TableConfigController</servlet-name>
+    <url-pattern>/TableConfigController</url-pattern>
   </servlet-mapping>
 </web-app>

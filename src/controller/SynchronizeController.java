@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import data.IntervalService;
 import data.SynchronizeService;
 
 
@@ -41,6 +42,7 @@ public class SynchronizeController extends HttpServlet {
         myThread1 = new MyThread1();  
         myThread1.start(); // servlet 上下文初始化时启动 socket   
         startThread = true;
+        IntervalService.changeState("start");
     }  
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
@@ -75,7 +77,7 @@ public class SynchronizeController extends HttpServlet {
 			stopThread = false;
 			this.init();
 //			myThread1.start();
-			logger.info(String.format("启动同步服务"));
+//			logger.info(String.format("启动同步服务"));
 	    }
 	}
 
@@ -84,7 +86,9 @@ public class SynchronizeController extends HttpServlet {
         	stopThread = true;
         	startThread = false;
         	myThread1.stop(); 
-        	logger.info(String.format("停止同步服务"));
+        	IntervalService.changeState("stop");
+        	
+//        	logger.info(String.format("停止同步服务"));
         }  
     }
 
