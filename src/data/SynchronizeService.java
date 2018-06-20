@@ -172,7 +172,7 @@ public class SynchronizeService {
 						values += "','yyyy-mm-dd hh24:mi:ss') ";
 					} else {
 						values +="'";
-						values += mapData.get(colName);
+						values += mapData.get(colName).toString().replace("'", "''");;
 						values +="' ";
 					}
 					values +=",";
@@ -321,6 +321,9 @@ public class SynchronizeService {
 					Map<String, String> map = listCol.get(i);
 					String key = map.get("colName");
 					String str = rs.getString(i+1);
+					if (str == null) {
+						str = "";
+					}
 					String value = new String(str.getBytes("UTF-8"));
 					mapData.put(key, value);
 				}
