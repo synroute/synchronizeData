@@ -160,7 +160,10 @@ public class TableConfigService {
 						szSql = String.format("delete from  SYNCHRON_CFG_TABLE  where TABLENAME =='%s' and TABLEID = %d",tableName,tableId);
 						stmt = dbConn.prepareStatement(szSql);
 						stmt.execute();	
-						DbUtil.closeST(stmt);	
+						DbUtil.closeST(stmt);
+						//同步删除目标数据库里的相应表的数据
+						dropDataFromTargetDb(tableName,tableId);
+						
 						szSql = String.format("insert into SYNCHRON_CFG_TABLE (TABLENAME,FIELD,TABLEID) values ('%s','%s',%d)", tableName,fieldName,tableId);
 						stmt = dbConn.prepareStatement(szSql);
 						stmt.execute();	
@@ -198,6 +201,54 @@ public class TableConfigService {
 			DbUtil.closeDbST(stmt, dbConn);
 		}	
 		return true;
+	}
+
+	private static void dropDataFromTargetDb(String tableName, int tableId) {
+		Connection dbConn = null;
+		String szSql = "";
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		String url = "";
+		String sourceUser = "";
+		String sourcePwd = "";
+		try {
+			dbConn = DbUtil.getConnection();
+			szSql = String.format("select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST from SYNCHRON_CFG_DBCONN where type =1 and id = '%s'", tableId) ;
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				if (rs.getString(1).equals("oracle")) {
+					url += "jdbc:oracle:thin:@";
+					url += rs.getString(2);
+					url += ":";
+					url += rs.getString(3);
+					url += ":";
+					url += rs.getString(4);
+				}
+				sourceUser = rs.getString(5);
+				sourcePwd = rs.getString(6);	
+			}
+		} catch (Exception e) {
+			logger.error(String.format("dropDataFromTargetDb"+szSql));
+			e.printStackTrace();
+			return;
+		} finally {
+			DbUtil.closeAll(rs, stmt, dbConn);
+		}	
+		try {
+			//重新获取连接
+			dbConn = DbUtil.getConnection(url,sourceUser,sourcePwd);
+			szSql = String.format("delete from '%s'", tableName);
+			stmt = dbConn.prepareStatement(szSql);
+			stmt.execute();	
+		} catch (Exception e) {
+			logger.error(String.format("dropDataFromTargetDb"+szSql));
+			e.printStackTrace();
+			return;
+		} finally {
+			DbUtil.closeDbST(stmt, dbConn);
+		}
+		return;
 	}
 
 	public static JSONArray getTableAndField() {
