@@ -108,12 +108,14 @@ public class TableConfigService {
 		}	
 		try {
 			dbConn = DbUtil.getConnection(url,sourceUser,sourcePwd);
-			szSql = String.format("SELECT COLUMN_NAME FROM USER_TAB_COLUMNS  where TABLE_NAME='%s' ", tableName) ;
+			szSql = String.format("SELECT b.COLUMN_NAME,b.DATA_TYPE,a.COMMENTS FROM USER_TAB_COLUMNS b,USER_COL_COMMENTS a WHERE b.TABLE_NAME = '%s' AND b.TABLE_NAME = a.TABLE_NAME AND b.COLUMN_NAME = a.COLUMN_NAME", tableName) ;
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while (rs.next()) {
 				JSONObject field = new JSONObject();
 				field.put("fieldName", rs.getString(1));
+				field.put("fieldType", rs.getString(2));
+				field.put("comments", rs.getString(3));
 				fieldInfo.add(field);
 			}
 		} catch (Exception e) {
