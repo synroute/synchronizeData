@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
+
 import data.DbConfigService;
 import net.sf.json.JSONArray;
 
@@ -17,6 +19,7 @@ import net.sf.json.JSONArray;
  */
 @SuppressWarnings("all")
 public class TargetDbConfig extends HttpServlet {
+	public static Logger logger = Logger.getLogger(TargetDbConfig.class);
 	private static final long serialVersionUID = 1L;
        
     /**
@@ -45,6 +48,7 @@ public class TargetDbConfig extends HttpServlet {
 		PrintWriter printWriter = response.getWriter();
 		String szActionValue = request.getParameter("action");
 		if (szActionValue.equals("addTargetDbConfig")) {//添加目标数据库配置
+			logger.info(String.format("addTargetDbConfig请求成功"));
 			try {
 				String msg = "";
 				String dbType = request.getParameter("dbType");
@@ -54,35 +58,65 @@ public class TargetDbConfig extends HttpServlet {
 				String dbUser = request.getParameter("dbUser");
 				String dbPassword = request.getParameter("dbPassword");
 				if (!DbConfigService.addTargetDbConfig(dbType,dbIp,dbPort,dbSid,dbUser,dbPassword)) {
-					msg = "添加失败";
+					msg = "添加目标数据库配置失败";
+					logger.error(String.format("addTargetDbConfig"+msg));
 				} else {
-					msg = "添加成功";
+					msg = "添加目标数据库配置成功";
 				}
 				printWriter.write(msg);
 			} catch (Exception e) {
+				logger.error(String.format("addTargetDbConfig异常"+e.toString()));
+				e.printStackTrace();
+			}
+		} else if (szActionValue.equals("modifyTargetDbConfig")) {//添加目标数据库配置
+			logger.info(String.format("modifyTargetDbConfig请求成功"));
+			try {
+				String msg = "";
+				String tableId = request.getParameter("tableId");//数据库ID
+				String dbType = request.getParameter("dbType");
+				String dbIp = request.getParameter("dbIp");
+				String dbPort = request.getParameter("dbPort");
+				String dbSid = request.getParameter("dbSid");
+				String dbUser = request.getParameter("dbUser");
+				String dbPassword = request.getParameter("dbPassword");
+				if (!DbConfigService.modifyTargetDbConfig(tableId,dbType,dbIp,dbPort,dbSid,dbUser,dbPassword)) {
+					msg = "修改目标数据库配置失败";
+					logger.error(String.format("addTargetDbConfig"+msg));
+				} else {
+					msg = "修改目标数据库配置成功";
+				}
+				printWriter.write(msg);
+			} catch (Exception e) {
+				logger.error(String.format("modifyTargetDbConfig异常"+e.toString()));
 				e.printStackTrace();
 			}
 		} else if (szActionValue.equals("dropTargetDbConfig")) {//删除目标数据库配置
+			logger.info(String.format("dropTargetDbConfig请求成功"));
 			try {
 				String msg = "";
 				String tableId = request.getParameter("tableId");
 				if (!DbConfigService.dropTargetDbConfig(tableId)) {
-					msg = "删除失败";
+					msg = "删除目标数据库配置失败";
+					logger.error(String.format("dropTargetDbConfig"+msg));
 				} else {
-					msg = "删除成功";
+					msg = "删除目标数据库配置成功";
 				}
 				printWriter.write(msg);
 			} catch (Exception e) {
+				logger.error(String.format("dropTargetDbConfig异常"+e.toString()));
 				e.printStackTrace();
 			}
 		} else if (szActionValue.equals("getTargetDbConfig")) {//获取目标数据库配置
+			logger.info(String.format("getTargetDbConfig请求成功"));
 			try {
 				JSONArray targetDbConfig = DbConfigService.getTargetDbConfig();
 				printWriter.print(targetDbConfig.toString());
 			} catch (Exception e) {
+				logger.error(String.format("getTargetDbConfig异常"+e.toString()));
 				e.printStackTrace();
 			}
 		} else if (szActionValue.equals("testTargetDbConfig")) {//测试目标数据库连接
+			logger.info(String.format("testTargetDbConfig请求成功"));
 			String msg = "";
 			String dbType = request.getParameter("dbType");
 			String dbIp = request.getParameter("dbIp");
@@ -91,9 +125,10 @@ public class TargetDbConfig extends HttpServlet {
 			String dbUser = request.getParameter("dbUser");
 			String dbPassword = request.getParameter("dbPassword");
 			if (!DbConfigService.testTargetDbConfig(dbType,dbIp,dbPort,dbSid,dbUser,dbPassword)) {
-				msg = "获取来源数据库连接失败";
+				msg = "获取目标数据库连接失败";
 			} else {
-				msg = "获取来源数据库连接成功";
+				msg = "获取目标数据库连接成功";
+				DbConfigService.modifyTargetDbState(dbType,dbIp,dbPort,dbSid,dbUser,dbPassword);
 			}
 			printWriter.write(msg);
 		} 

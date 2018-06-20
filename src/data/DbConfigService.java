@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.apache.log4j.Logger;
+
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -14,7 +16,7 @@ import net.sf.json.JSONObject;
 * 类说明
 */
 public class DbConfigService {
-
+	public static Logger logger = Logger.getLogger(DbConfigService.class);
 	public static boolean saveSourceDbConfig(String dbType, String dbIp, String dbPort, String dbSid, String dbUser,
 			String dbPassword) {
 		Connection dbConn = null;
@@ -38,6 +40,7 @@ public class DbConfigService {
             } catch (SQLException e1) {
                 e1.printStackTrace();
             }
+			logger.error(String.format("saveSourceDbConfig异常"+e.toString()));
 			e.printStackTrace();
 			return false;
 		}  catch (Exception e) {
@@ -46,6 +49,7 @@ public class DbConfigService {
             } catch (SQLException e1) {
                 e1.printStackTrace();
             }
+			logger.error(String.format("saveSourceDbConfig异常"+e.toString()));
 			e.printStackTrace();
 			return false;
 		} finally {
@@ -83,6 +87,7 @@ public class DbConfigService {
 				jsonArray.add(jsonObject);
 			}
 		} catch (Exception e) {
+			logger.error(String.format("getSourceDbConfig异常"+e.toString()));
 			e.printStackTrace();
 			return null;
 		} finally {
@@ -119,6 +124,7 @@ public class DbConfigService {
 				return false;
 			}
 		} catch (Exception e) {
+			logger.error(String.format("testSourceDbConfig异常"+e.toString()));
 			e.printStackTrace();
 			return false;
 		} finally {
@@ -132,6 +138,7 @@ public class DbConfigService {
 				return false;
 			}
 		} catch (Exception e) {
+			logger.error(String.format("testSourceDbConfig异常"+e.toString()));
 			e.printStackTrace();
 			return false;
 		} finally {
@@ -151,9 +158,11 @@ public class DbConfigService {
 			stmt.execute();	
 			DbUtil.closeST(stmt);
 		} catch (SQLException e) {
+			logger.error(String.format("addTargetDbConfig异常"+e.toString()));
 			e.printStackTrace();
 			return false;
 		}  catch (Exception e) {
+			logger.error(String.format("addTargetDbConfig异常"+e.toString()));
 			e.printStackTrace();
 			return false;
 		} finally {
@@ -173,9 +182,11 @@ public class DbConfigService {
 			stmt.execute();	
 			dropTargetTableConfig(tableId);
 		} catch (SQLException e) {
+			logger.error(String.format("dropTargetDbConfig异常"+e.toString()));
 			e.printStackTrace();
 			return false;
 		}  catch (Exception e) {
+			logger.error(String.format("dropTargetDbConfig异常"+e.toString()));
 			e.printStackTrace();
 			return false;
 		} finally {
@@ -194,9 +205,11 @@ public class DbConfigService {
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();	
 		} catch (SQLException e) {
+			logger.error(String.format("dropTargetTableConfig异常"+e.toString()));
 			e.printStackTrace();
 			return;
 		}  catch (Exception e) {
+			logger.error(String.format("dropTargetTableConfig异常"+e.toString()));
 			e.printStackTrace();
 			return;
 		} finally {
@@ -215,7 +228,7 @@ public class DbConfigService {
 			conn = DbUtil.getConnection();
 			stmt = conn.prepareStatement(sql);
 			rs = stmt.executeQuery();
-			if (rs.next()) {
+			while (rs.next()) {
 				JSONObject jsonObject = new JSONObject();
 				jsonObject.put("dbType", rs.getString("DBTYPE"));
 				jsonObject.put("dbIp", rs.getString("DBIP"));
@@ -229,6 +242,7 @@ public class DbConfigService {
 				jsonArray.add(jsonObject);
 			}
 		} catch (Exception e) {
+			logger.error(String.format("getTargetDbConfig异常"+e.toString()));
 			e.printStackTrace();
 			return null;
 		} finally {
@@ -270,5 +284,79 @@ public class DbConfigService {
 		} finally {
 			DbUtil.closeDbconn(dbConn);
 		}
+	}
+
+	public static boolean modifyTargetDbConfig(String tableId, String dbType, String dbIp, String dbPort, String dbSid,
+			String dbUser, String dbPassword) {
+		Connection dbConn = null;
+		PreparedStatement stmt = null;
+		String szSql = "";
+		try {
+			dbConn = DbUtil.getConnection();
+			szSql = String.format("update SYNCHRON_CFG_DBCONN  set DBTYPE='%s',DBIP='%s',DBPORT='%s',DBSID='%s',DBUSER='%s',DBPWD='%s',PASSTEST=0 where ID = '%s' ", dbType,dbIp,dbPort,dbSid,dbUser,dbPassword,tableId);
+			stmt = dbConn.prepareStatement(szSql);
+			stmt.execute();	
+			DbUtil.closeST(stmt);
+		} catch (SQLException e) {
+			logger.error(String.format("modifyTargetDbConfig异常"+e.toString()));
+			e.printStackTrace();
+			return false;
+		}  catch (Exception e) {
+			logger.error(String.format("modifyTargetDbConfig异常"+e.toString()));
+			e.printStackTrace();
+			return false;
+		} finally {
+			DbUtil.closeDbST(stmt, dbConn);
+		}	
+		return true;
+	}
+
+	public static void modifyTargetDbState(String dbType, String dbIp, String dbPort, String dbSid, String dbUser,
+			String dbPassword) {
+		Connection dbConn = null;
+		PreparedStatement stmt = null;
+		String szSql = "";
+		try {
+			dbConn = DbUtil.getConnection();
+			szSql = String.format("update SYNCHRON_CFG_DBCONN  set  PASSTEST=1 where  DBTYPE='%s' and DBIP='%s' and DBPORT='%s' and DBSID='%s' and DBUSER='%s' and DBPWD='%s' ", dbType,dbIp,dbPort,dbSid,dbUser,dbPassword);
+			stmt = dbConn.prepareStatement(szSql);
+			stmt.execute();	
+			DbUtil.closeST(stmt);
+		} catch (SQLException e) {
+			logger.error(String.format("modifyDbState异常"+e.toString()));
+			e.printStackTrace();
+			return;
+		}  catch (Exception e) {
+			logger.error(String.format("modifyDbState异常"+e.toString()));
+			e.printStackTrace();
+			return;
+		} finally {
+			DbUtil.closeDbST(stmt, dbConn);
+		}	
+		return;
+	}
+
+	public static void modifySourceDbState() {
+		Connection dbConn = null;
+		PreparedStatement stmt = null;
+		String szSql = "";
+		try {
+			dbConn = DbUtil.getConnection();
+			szSql = String.format("update SYNCHRON_CFG_DBCONN  set  PASSTEST=1 where type=0 ");
+			stmt = dbConn.prepareStatement(szSql);
+			stmt.execute();	
+			DbUtil.closeST(stmt);
+		} catch (SQLException e) {
+			logger.error(String.format("modifySourceDbState异常"+e.toString()));
+			e.printStackTrace();
+			return;
+		}  catch (Exception e) {
+			logger.error(String.format("modifySourceDbState异常"+e.toString()));
+			e.printStackTrace();
+			return;
+		} finally {
+			DbUtil.closeDbST(stmt, dbConn);
+		}	
+		return;
 	}
 }

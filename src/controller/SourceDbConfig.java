@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.log4j.Logger;
+
 import data.DbConfigService;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -20,6 +22,7 @@ import net.sf.json.JSONObject;
 */
 @SuppressWarnings("all")
 public class SourceDbConfig  extends HttpServlet  {
+	public static Logger logger = Logger.getLogger(SourceDbConfig.class);
 	private static final long serialVersionUID = 1L;
        
     /**
@@ -48,6 +51,7 @@ public class SourceDbConfig  extends HttpServlet  {
 		PrintWriter printWriter = response.getWriter();
 		String szActionValue = request.getParameter("action");
 		if (szActionValue.equals("saveSourceDbConfig")) {//保存来源数据库
+			logger.info(String.format("saveSourceDbConfig请求成功"));
 			try {
 				String msg = "";
 				String dbType = request.getParameter("dbType");
@@ -57,27 +61,33 @@ public class SourceDbConfig  extends HttpServlet  {
 				String dbUser = request.getParameter("dbUser");
 				String dbPassword = request.getParameter("dbPassword");
 				if (!DbConfigService.saveSourceDbConfig(dbType,dbIp,dbPort,dbSid,dbUser,dbPassword)) {
-					msg = "保存失败";
+					msg = "来源数据库配置保存失败";
+					logger.error(String.format("saveSourceDbConfig"+msg));
 				} else {
-					msg = "保存成功";
+					msg = "来源数据库配置保存成功";
 				}
 				printWriter.write(msg);
 			} catch (Exception e) {
+				logger.error(String.format("saveSourceDbConfig异常"));
 				e.printStackTrace();
 			}
 		} else if (szActionValue.equals("getSourceDbConfig")) {//获取来源数据库配置
+			logger.info(String.format("getSourceDbConfig请求成功"));
 			try {
 				JSONArray sourceDbConfig = DbConfigService.getSourceDbConfig();
 				printWriter.print(sourceDbConfig.toString());
 			} catch (Exception e) {
+				logger.error(String.format("getSourceDbConfig异常"));
 				e.printStackTrace();
 			}
 		} else if (szActionValue.equals("testSourceDbConfig")) {//测试来源数据库连接
+			logger.info(String.format("testSourceDbConfig请求成功"));
 			String msg = "";
 			if (!DbConfigService.testSourceDbConfig()) {
 				msg = "获取来源数据库连接失败";
 			} else {
 				msg = "获取来源数据库连接成功";
+				DbConfigService.modifySourceDbState();
 			}
 			printWriter.write(msg);
 		} 

@@ -5,9 +5,10 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
+import org.apache.log4j.Logger;
+//import org.apache.logging.log4j.Logger;
+//import org.apache.logging.log4j.Level;
+//import org.apache.logging.log4j.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.ServletException;
@@ -27,7 +28,7 @@ import data.SynchronizeService;
 */
 @SuppressWarnings("all")
 public class SynchronizeController extends HttpServlet {
-	private static Logger logger = LogManager.getLogger(SynchronizeController.class.getName());
+	public static Logger logger = Logger.getLogger(SynchronizeController.class);
 	
 	private static final long serialVersionUID = 1L;  
     private MyThread1 myThread1;
@@ -77,7 +78,7 @@ public class SynchronizeController extends HttpServlet {
 			stopThread = false;
 			this.init();
 //			myThread1.start();
-//			logger.info(String.format("启动同步服务"));
+			logger.info(String.format("启动同步服务"));
 	    }
 	}
 
@@ -88,7 +89,7 @@ public class SynchronizeController extends HttpServlet {
         	myThread1.stop(); 
         	IntervalService.changeState("stop");
         	
-//        	logger.info(String.format("停止同步服务"));
+        	logger.info(String.format("停止同步服务"));
         }  
     }
 
@@ -102,23 +103,28 @@ public class SynchronizeController extends HttpServlet {
 
 //线程
 class MyThread1 extends Thread {  
+	public static Logger logger = Logger.getLogger(SynchronizeController.class);
 	int interval = SynchronizeService.getInterval();
 //	int interval = 5000;
     public void run() {  
         while (!SynchronizeController.getStopThread()) {// 线程未中断执行循环  
+        	//记录时间   加日志
+        	Date now = new Date(); 
+        	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        	String time = dateFormat.format(now);   
+        	System.out.println("TIME:" + time);
+        	
+        	logger.info(String.format("同步时间"+time));
+        	
+        	//同步数据  捕获异常，加日志
+        	SynchronizeService.synchronizeData();
+        	
             try {  
                 Thread.sleep(interval);  
-            } catch (InterruptedException e) {  
+            } catch (InterruptedException e) { 
+            	logger.error(String.format("线程异常"+e.toString()));
                 e.printStackTrace();  
             }
-            //记录时间   加日志
-            Date now = new Date(); 
-    		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-    		String time = dateFormat.format(now);   
-            System.out.println("TIME:" + time);
-            
-            //同步数据  捕获异常，加日志
-            SynchronizeService.synchronizeData();
         }  
     }  
 }  

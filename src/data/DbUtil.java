@@ -5,6 +5,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ResourceBundle;
 
+import org.apache.log4j.Logger;
+
 
 /**
 * @author yagnwentian
@@ -13,6 +15,8 @@ import java.util.ResourceBundle;
 */
 
 public class DbUtil {
+	public static Logger logger = Logger.getLogger(DbUtil.class);
+
 	private static String driverClass;
 	private static String url;
 	private static String user;
@@ -27,6 +31,7 @@ public class DbUtil {
 			Class.forName(driverClass);
 			
 		} catch (Exception e) {
+        	logger.error(String.format("读取配置文件异常"+e.toString()));
 			e.printStackTrace();
 		}
 	}

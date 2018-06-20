@@ -9,7 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
+
+//import org.apache.logging.log4j.Logger;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -27,6 +29,7 @@ import net.sf.json.JSONArray;
 * 类说明
 */
 public class SynchronizeService {
+	public static Logger logger = Logger.getLogger(SynchronizeService.class);
 	public static int interval;
 	
 	//获取更新间隔，毫秒
@@ -44,6 +47,7 @@ public class SynchronizeService {
 				interval = rs.getInt(1)*60*1000;
 			}
 		} catch (Exception e) {
+			logger.error(String.format("getInterval异常"+e.toString()));
 			e.printStackTrace();
 		} finally {
 			DbUtil.closeAll(rs, stmt, dbConn);
@@ -65,6 +69,7 @@ public class SynchronizeService {
 	//同步数据 ，遍历表，依次从表中拿出数据，依次更新，加入日志
 	private static void synchronize(Map<String, Object> mapDbInfo) {
 		String tablestr = mapDbInfo.get("tableInfo").toString();
+		logger.info(String.format("同步表信息"+tablestr));
 		JsonParser jsonParser=new JsonParser();
 		JsonArray jsonArray=jsonParser.parse(tablestr).getAsJsonArray();
 		//遍历所有的表
@@ -120,6 +125,7 @@ public class SynchronizeService {
 				targetPwd = rs.getString(6);	
 			}
 		} catch (Exception e) {
+			logger.error(String.format("insertDataToTargetDb异常"+szSql));
 			e.printStackTrace();
 		} finally {
 			DbUtil.closeAll(rs, stmt, dbConn);
@@ -144,7 +150,8 @@ public class SynchronizeService {
 			insert +=") ";
 			
 		} catch (Exception e) {
-			// TODO: handle exception
+			logger.error(String.format("insertDataToTargetDb异常"+insert));
+			e.printStackTrace();
 		} finally {
 			DbUtil.closeAll(rs, stmt, dbConn);
 		}	
@@ -191,6 +198,7 @@ public class SynchronizeService {
 			} catch (SQLException e1) {
 				e1.printStackTrace();
 			}
+			logger.error(String.format("insertDataToTargetDb异常"+e.toString()));
 			e.printStackTrace();
 		} finally {
 			try {
@@ -227,6 +235,7 @@ public class SynchronizeService {
             } catch (SQLException e1) {
                 e1.printStackTrace();
             }
+			logger.error(String.format("updateIdentity异常"+e.toString()));
 			e.printStackTrace();
 		} finally {
 			try {
@@ -298,6 +307,7 @@ public class SynchronizeService {
 			querySql += " order by ";
 			querySql += fieldName;
 		} catch (Exception e) {
+			logger.error(String.format("queryDataFromSourceDb异常"+szSql));
 			e.printStackTrace();
 		} finally {
 			DbUtil.closeRs(rs, stmt);
@@ -323,6 +333,7 @@ public class SynchronizeService {
 				listData.add(mapData);
 			}
 		} catch (Exception e) {
+			logger.error(String.format("queryDataFromSourceDb异常"+querySql));
 			e.printStackTrace();
 		} finally {
 			DbUtil.closeAll(rs, stmt, dbConn);
@@ -356,6 +367,7 @@ public class SynchronizeService {
 			String tableInfo = JSONArray.fromObject(listTableInfo).toString(); 
 			mapDbInfo.put("tableInfo", tableInfo);
 		} catch (Exception e) {
+			logger.error(String.format("getTableInfo异常"+szSql));
 			e.printStackTrace();
 		} finally {
 			DbUtil.closeAll(rs, stmt, dbConn);
@@ -408,6 +420,7 @@ public class SynchronizeService {
 //				mapDbInfo.put("targetCount", targetCount);
 			}
 		} catch (Exception e) {
+			logger.error(String.format("getDbInfo异常"+szSql));
 			e.printStackTrace();
 		} finally {
 			DbUtil.closeAll(rs, stmt, dbConn);

@@ -80,7 +80,11 @@
 			<artifactId>jstl</artifactId>
 			<version>1.2</version>
 		</dependency>
-
+		<dependency>
+    		<groupId>log4j</groupId>
+   			<artifactId>log4j</artifactId>
+    		<version>1.2.17</version>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-web</artifactId>
@@ -116,7 +120,7 @@
 			<artifactId>json</artifactId>
 			<version>20170516</version>
 		</dependency>
-		<dependency>
+<!-- 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
 			<version>2.9.1</version>
@@ -126,7 +130,8 @@
 			<artifactId>log4j-core</artifactId>
 			<version>2.9.1</version>
 		</dependency>
-<!-- 		<dependency>
+	
+ 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-web</artifactId>
 			<version>2.9.1</version>

@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.apache.log4j.Logger;
+
 import net.sf.json.JSONObject;
 
 /**
@@ -13,7 +15,7 @@ import net.sf.json.JSONObject;
 * 类说明
 */
 public class IntervalService {
-
+	public static Logger logger = Logger.getLogger(IntervalService.class);
 	public static boolean saveInterval(int interval) {
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
@@ -36,6 +38,7 @@ public class IntervalService {
             } catch (SQLException e1) {
                 e1.printStackTrace();
             }
+			logger.error(String.format("saveInterval异常"+e.toString()));
 			e.printStackTrace();
 			return false;
 		}  catch (Exception e) {
@@ -44,6 +47,7 @@ public class IntervalService {
             } catch (SQLException e1) {
                 e1.printStackTrace();
             }
+			logger.error(String.format("saveInterval异常"+e.toString()));
 			e.printStackTrace();
 			return false;
 		} finally {
@@ -72,6 +76,7 @@ public class IntervalService {
 		    	jsonObject.put("isStart", rs.getInt(2));
 		    }  
 		}catch(Exception e) {  
+			logger.error(String.format("getIntervalAndState异常"+e.toString()));
 		    e.printStackTrace();  
 		    return jsonObject;
 		}finally {  
@@ -96,8 +101,10 @@ public class IntervalService {
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();	
 		} catch (SQLException e) {
+			logger.error(String.format("changeState异常"+e.toString()));
 			e.printStackTrace();
 		}  catch (Exception e) {
+			logger.error(String.format("changeState异常"+e.toString()));
 			e.printStackTrace();
 		} finally {	
 			DbUtil.closeDbST(stmt, dbConn);

@@ -5,8 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.omg.CosNaming.NamingContextExtPackage.StringNameHelper;
-
+import org.apache.log4j.Logger;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -20,7 +19,7 @@ import net.sf.json.JSONObject;
 * 类说明
 */
 public class TableConfigService {
-
+	public static Logger logger = Logger.getLogger(TableConfigService.class);
 	public static JSONArray getAllTableFromSource() {
 		JSONArray tableInfo = new JSONArray();
 		Connection dbConn = null;
@@ -48,6 +47,7 @@ public class TableConfigService {
 				sourcePwd = rs.getString(6);	
 			}
 		} catch (Exception e) {
+			logger.error(String.format("getAllTableFromSource"+szSql));
 			e.printStackTrace();
 			return tableInfo;
 		} finally {
@@ -64,6 +64,7 @@ public class TableConfigService {
 				tableInfo.add(table);
 			}
 		} catch (Exception e) {
+			logger.error(String.format("getAllTableFromSource"+szSql));
 			e.printStackTrace();
 			return tableInfo;
 		} finally {
@@ -99,6 +100,7 @@ public class TableConfigService {
 				sourcePwd = rs.getString(6);	
 			}
 		} catch (Exception e) {
+			logger.error(String.format("getAllFieldByTableName"+szSql));
 			e.printStackTrace();
 			return fieldInfo;
 		} finally {
@@ -115,6 +117,7 @@ public class TableConfigService {
 				fieldInfo.add(field);
 			}
 		} catch (Exception e) {
+			logger.error(String.format("getAllFieldByTableName"+szSql));
 			e.printStackTrace();
 			return fieldInfo;
 		} finally {
@@ -172,6 +175,7 @@ public class TableConfigService {
             } catch (SQLException e1) {
                 e1.printStackTrace();
             }
+			logger.error(String.format("saveTableAndField"+e.toString()));
 			e.printStackTrace();
 			return false;
 		}  catch (Exception e) {
@@ -180,6 +184,7 @@ public class TableConfigService {
             } catch (SQLException e1) {
                 e1.printStackTrace();
             }
+			logger.error(String.format("saveTableAndField"+e.toString()));
 			e.printStackTrace();
 			return false;
 		} finally {
@@ -211,6 +216,7 @@ public class TableConfigService {
 				tableInfo.add(tableInfoObj);
 			}
 		} catch (Exception e) {
+			logger.error(String.format("getTableAndField"+e.toString()));
 			e.printStackTrace();
 			return tableInfo;
 		} finally {
@@ -252,6 +258,7 @@ public class TableConfigService {
 				targetInfo.add(jsonObject);
 			}
 		} catch (Exception e) {
+			logger.error(String.format("testTable"+e.toString()));
 			e.printStackTrace();
 		} finally {
 			DbUtil.closeAll(rs, stmt, dbConn);
@@ -280,6 +287,7 @@ public class TableConfigService {
 				DbUtil.closeAll(rs, stmt, dbConn);	
 			}
 		} catch (Exception e) {
+			logger.error(String.format("testTable"+e.toString()));
 			e.printStackTrace();
 			return "异常";
 		} finally {
