@@ -57,12 +57,13 @@ public class TargetDbConfig extends HttpServlet {
 				String dbSid = request.getParameter("dbSid");
 				String dbUser = request.getParameter("dbUser");
 				String dbPassword = request.getParameter("dbPassword");
-				if (!DbConfigService.addTargetDbConfig(dbType,dbIp,dbPort,dbSid,dbUser,dbPassword)) {
-					msg = "添加目标数据库配置失败";
-					logger.error(String.format("addTargetDbConfig"+msg));
-				} else {
-					msg = "添加目标数据库配置成功";
-				}
+				msg = DbConfigService.addTargetDbConfig(dbType,dbIp,dbPort,dbSid,dbUser,dbPassword);
+//				if (!DbConfigService.addTargetDbConfig(dbType,dbIp,dbPort,dbSid,dbUser,dbPassword)) {
+//					msg = "添加目标数据库配置失败";
+//					logger.error(String.format("addTargetDbConfig"+msg));
+//				} else {
+//					msg = "添加目标数据库配置成功";
+//				}
 				printWriter.write(msg);
 			} catch (Exception e) {
 				logger.error(String.format("addTargetDbConfig异常"+e.toString()));
@@ -79,12 +80,13 @@ public class TargetDbConfig extends HttpServlet {
 				String dbSid = request.getParameter("dbSid");
 				String dbUser = request.getParameter("dbUser");
 				String dbPassword = request.getParameter("dbPassword");
-				if (!DbConfigService.modifyTargetDbConfig(tableId,dbType,dbIp,dbPort,dbSid,dbUser,dbPassword)) {
-					msg = "修改目标数据库配置失败";
-					logger.error(String.format("addTargetDbConfig"+msg));
-				} else {
-					msg = "修改目标数据库配置成功";
-				}
+				msg = DbConfigService.modifyTargetDbConfig(tableId,dbType,dbIp,dbPort,dbSid,dbUser,dbPassword);
+//				if (!DbConfigService.modifyTargetDbConfig(tableId,dbType,dbIp,dbPort,dbSid,dbUser,dbPassword)) {
+//					msg = "修改目标数据库配置失败";
+//					logger.error(String.format("addTargetDbConfig"+msg));
+//				} else {
+//					msg = "修改目标数据库配置成功";
+//				}
 				printWriter.write(msg);
 			} catch (Exception e) {
 				logger.error(String.format("modifyTargetDbConfig异常"+e.toString()));

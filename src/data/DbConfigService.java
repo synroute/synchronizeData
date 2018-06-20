@@ -146,13 +146,35 @@ public class DbConfigService {
 		}
 	}
 
-	public static boolean addTargetDbConfig(String dbType, String dbIp, String dbPort, String dbSid, String dbUser,
+	public static String addTargetDbConfig(String dbType, String dbIp, String dbPort, String dbSid, String dbUser,
 			String dbPassword) {
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
+		ResultSet rs = null;
 		String szSql = "";
 		try {
 			dbConn = DbUtil.getConnection();
+			szSql = String.format("select count(*) from SYNCHRON_CFG_DBCONN where DBTYPE ='%s' and DBIP ='%s' and DBPORT ='%s' and DBSID ='%s' and DBUSER ='%s' and DBPWD ='%s' ",dbType,dbIp,dbPort,dbSid,dbUser,dbPassword);
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				if (rs.getInt(1) > 0) {
+					return "此数据库配置已存在，添加目标数据库配置失败";
+				} 
+			}
+		} catch (SQLException e) {
+			logger.error(String.format("addTargetDbConfig异常"+e.toString()));
+			e.printStackTrace();
+			return "添加目标数据库配置失败";
+		}  catch (Exception e) {
+			logger.error(String.format("addTargetDbConfig异常"+e.toString()));
+			e.printStackTrace();
+			return "添加目标数据库配置失败";
+		} finally {
+			DbUtil.closeRs(rs, stmt);
+		}		
+		try {
+//			dbConn = DbUtil.getConnection();
 			szSql = String.format("insert into SYNCHRON_CFG_DBCONN (DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST,ID) values ('%s','%s','%s','%s','%s','%s',1,0,S_SYNCHRON_CFG_DBCONN.nextval)", dbType,dbIp,dbPort,dbSid,dbUser,dbPassword);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();	
@@ -160,15 +182,15 @@ public class DbConfigService {
 		} catch (SQLException e) {
 			logger.error(String.format("addTargetDbConfig异常"+e.toString()));
 			e.printStackTrace();
-			return false;
+			return "添加目标数据库配置失败";
 		}  catch (Exception e) {
 			logger.error(String.format("addTargetDbConfig异常"+e.toString()));
 			e.printStackTrace();
-			return false;
+			return "添加目标数据库配置失败";
 		} finally {
 			DbUtil.closeDbST(stmt, dbConn);
 		}	
-		return true;
+		return "添加目标数据库配置成功";
 	}
 
 	public static boolean dropTargetDbConfig(String tableId) {
@@ -286,13 +308,35 @@ public class DbConfigService {
 		}
 	}
 
-	public static boolean modifyTargetDbConfig(String tableId, String dbType, String dbIp, String dbPort, String dbSid,
+	public static String modifyTargetDbConfig(String tableId, String dbType, String dbIp, String dbPort, String dbSid,
 			String dbUser, String dbPassword) {
 		Connection dbConn = null;
 		PreparedStatement stmt = null;
 		String szSql = "";
+		ResultSet rs = null;
 		try {
 			dbConn = DbUtil.getConnection();
+			szSql = String.format("select count(*) from SYNCHRON_CFG_DBCONN where DBTYPE ='%s' and DBIP ='%s' and DBPORT ='%s' and DBSID ='%s' and DBUSER ='%s' and DBPWD ='%s' and id != '%s' ",dbType,dbIp,dbPort,dbSid,dbUser,dbPassword,tableId);
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				if (rs.getInt(1) > 0) {
+					return "此数据库配置已存在，修改目标数据库配置失败";
+				} 
+			}
+		} catch (SQLException e) {
+			logger.error(String.format("addTargetDbConfig异常"+e.toString()));
+			e.printStackTrace();
+			return "修改目标数据库配置失败";
+		}  catch (Exception e) {
+			logger.error(String.format("addTargetDbConfig异常"+e.toString()));
+			e.printStackTrace();
+			return "修改目标数据库配置失败";
+		} finally {
+			DbUtil.closeRs(rs, stmt);
+		}		
+		try {
+//			dbConn = DbUtil.getConnection();
 			szSql = String.format("update SYNCHRON_CFG_DBCONN  set DBTYPE='%s',DBIP='%s',DBPORT='%s',DBSID='%s',DBUSER='%s',DBPWD='%s',PASSTEST=0 where ID = '%s' ", dbType,dbIp,dbPort,dbSid,dbUser,dbPassword,tableId);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();	
@@ -300,15 +344,15 @@ public class DbConfigService {
 		} catch (SQLException e) {
 			logger.error(String.format("modifyTargetDbConfig异常"+e.toString()));
 			e.printStackTrace();
-			return false;
+			return "修改目标数据库配置失败";
 		}  catch (Exception e) {
 			logger.error(String.format("modifyTargetDbConfig异常"+e.toString()));
 			e.printStackTrace();
-			return false;
+			return "修改目标数据库配置失败";
 		} finally {
 			DbUtil.closeDbST(stmt, dbConn);
 		}	
-		return true;
+		return "修改目标数据库配置成功";
 	}
 
 	public static void modifyTargetDbState(String dbType, String dbIp, String dbPort, String dbSid, String dbUser,
