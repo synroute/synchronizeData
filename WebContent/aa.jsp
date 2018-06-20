@@ -11,11 +11,16 @@
     <meta http-equiv="X-UA-Compatible"  content="IE=edge,chrome=1">
     <title>同步CTI数据服务配置</title>
     <link rel="stylesheet" type="text/css" href="./css/synrouteStyle-1.0.css">
+    <link rel="stylesheet" type="text/css" href="./css/commonStyle-1.02.css">
+    <link rel="stylesheet" type="text/css" href="./css/DMSetting.css">
+    <link rel="stylesheet" type="text/css" href="./css/optiscroll.css">
     <link rel="stylesheet" type="text/css" href="./themes/material/easyui.css">
     <link rel="stylesheet" type="text/css" href="./themes/icon.css">
     <link rel="stylesheet" type="text/css" href="./themes/color.css">
-    <script type="text/javascript" src="./js/jquery.min.js"></script>
+    <script type="text/javascript" src="jquery-easyui-1.5.1/jquery.min.js"></script>
     <script type="text/javascript" src="./js/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="./js/jquery.form.js"></script>
+    <script type="text/javascript" src="./js/optiscroll.js"></script>
     <script type="text/javascript" src="./js/hiagent.js"></script>
     <style type="text/css">
     	.item {
@@ -24,7 +29,7 @@
 	    }
     </style>
 </head>
-<body style="width:100%;height: 100%;padding:0;margin:0;">
+<body id="layout" style="width:100%;height: 100%;padding:0;margin:0;">
 	<main class="loaded">
 		<div class="loader">
 		    <div class="loader-inner ball-pulse-sync" style="text-align: center;">
@@ -35,7 +40,7 @@
 		</div>
 	</main>
 	<div class="easyui-layout" style="width:100%;height:100%">
-	  	<div data-options="region:'north'" style="width:100%;height:50%;">
+	  	<div data-options="region:'north'" style="width:100%;height:40%;">
 	  		<div class="easyui-layout" style="width:100%;height:100%;">   
 			    <div data-options="region:'center',title:'来源数据库'" style="width:30%;height:100%;">
 					<div id="sourceDatabase" style="margin:0 auto;width:100%;height:100%;">
@@ -77,6 +82,7 @@
 					    <div data-options="region:'west'" style="width:60%;height:100%;position:relative;">
 					    	<div style="height:40px;line-height:35px;text-align:right;">
 					    		<a id="delectBtn" href="javascript:void(0)" style="margin-right:5px;" class="easyui-linkbutton" data-options="" onclick="delectBtn()">删除</a>
+					    		<a id="addBtn" href="javascript:void(0)" style="margin-right:5px;" class="easyui-linkbutton" data-options="" onclick="addBtn()">新增</a>
 					    	</div>
 					    	<div style="width:100%;position:absolute;top:40px;bottom:0;">
 								<table id="targetList" class="easyui-datagrid" style="width:100%;height:100%;"   
@@ -87,52 +93,56 @@
 								            <th data-options="field:'dbType',width:80,">数据库类型</th>   
 								            <th data-options="field:'dbUser',width:80,">用户名</th>    
 								            <th data-options="field:'dbPort',width:80,">端口号</th> 
-								            <!-- <th data-options="field:'_operate',width:80,align:'center',formatter:formatOper">状态</th> -->  
+			              					<th data-options="field:'_operate',width:80,align:'center',formatter:formatOper">状态</th>  
 								        </tr>   
 								    </thead>   
 								</table>
 							</div>
 					    </div>   
 					    <div data-options="region:'center'" style="width:40%;height:100%;">
-					    	<div id="targetDatabase" style="margin:0 auto;width:100%;height:100%;">
-								<div class="item" style="width:70%;margin-top:10px;">
-									<select id="targetDatabaseType" class="easyui-combobox" name="dept" style="width:100%;" data-options="label:'数据库类型',labelAlign:'right',editable:false,">   
+					    	<div style="height:40px;line-height:35px;text-align:right;">
+					    		<a id="sourceAddBtn" href="javascript:void(0)" style="margin-right:5px;" class="easyui-linkbutton" data-options="" onclick="sourceAddBtn()">保存</a>
+					    		<a id="cancel" href="javascript:void(0)" style="margin-right:5px;" class="easyui-linkbutton" data-options="" onclick="cancel()">取消</a>
+					    	</div>
+					    	<div id="targetDatabase" style="margin:0 auto;width:100%;">
+								<div class="item" style="width:80%;margin-top:10px;">
+									<select id="targetDatabaseType" class="easyui-combobox" name="dept" style="width:90%;" data-options="label:'数据库类型',labelAlign:'right',editable:false,">   
 									    <option value="oracle">oracle</option>
 									    <option value="mySQL">mySQL</option>   
 									</select> 
 								</div> 
-								<div class="item" style="width:70%">
-					    			<input id="targetIP" class="easyui-textbox" style="width: 100%;"
+								<div class="item" style="width:80%">
+					    			<input id="targetIP" class="easyui-textbox" style="width: 90%;"
 											data-options="label:'IP',labelAlign:'right',">
 					    		</div>
-								<div class="item" style="width:70%">
-					    			<input id="targetPort" class="easyui-textbox" style="width: 100%;"
+								<div class="item" style="width:80%">
+					    			<input id="targetPort" class="easyui-textbox" style="width: 90%;"
 											data-options="label:'端口',labelAlign:'right',">
 					    		</div>
-								<div class="item" style="width:70%">
-					    			<input id="targetUser" class="easyui-textbox" style="width: 100%;"
+								<div class="item" style="width:80%">
+					    			<input id="targetUser" class="easyui-textbox" style="width: 90%;"
 											data-options="label:'用户名',labelAlign:'right',">
 					    		</div>
-								<div class="item" style="width:70%">
-					    			<input id="targetPassword" class="easyui-textbox" style="width: 100%;"
+								<div class="item" style="width:80%">
+					    			<input id="targetPassword" class="easyui-textbox" style="width: 90%;"
 											data-options="label:'密码',labelAlign:'right',">
 					    		</div>
-								<div class="item" style="width:70%">
-					    			<input id="targetSID" class="easyui-textbox" style="width: 100%;"
+								<div class="item" style="width:80%;margin-bottom:10px;">
+					    			<input id="targetSID" class="easyui-textbox" style="width: 90%;"
 											data-options="label:'SID',labelAlign:'right',">
 					    		</div>
-					    		<div class="item" style="width:80%;text-align:right;">
-					    			<a id="targetSave" href="javascript:void(0)" style="margin-right:5px;" class="easyui-linkbutton" data-options="" onclick="targetSave()">保存</a>
-					    			<a id="targetTest" href="javascript:void(0)" style="margin-right:5px;" class="easyui-linkbutton" data-options="" onclick="targetTest()">测试</a>
-					    			<span id="targetResult"></span>
-					    		</div>
 							</div>
+				    		<div class="item" style="width:68%;text-align:right;">
+				    			<a id="targetSave" href="javascript:void(0)" style="margin-right:5px;" class="easyui-linkbutton" data-options="" onclick="targetSave()">保存</a>
+				    			<a id="targetTest" href="javascript:void(0)" style="margin-right:5px;" class="easyui-linkbutton" data-options="" onclick="targetTest()">测试</a>
+				    			<span id="targetResult"></span>
+				    		</div>
 					    </div>   
 					</div>
 				</div> 
 		    </div> 
 	  	</div> 
-	    <div data-options="region:'center'" style="width:100%;height:40%;">
+	    <div data-options="region:'center'" style="width:100%;height:50%;">
 	    	<div class="easyui-layout" style="width:100%;height:100%;"> 
 			    <div data-options="region:'center'" style="width:50%;height:100%;">
 			    	<div style="width:100%;height:40px;line-height:35px;text-align:right;">
@@ -142,29 +152,32 @@
 			    	</div>
 			    	<div id="list" style="width:100%;position:absolute;top:40px;bottom:0;">
 			    	<div id="cc" class="easyui-layout" style="width:100%;height:100%;">   
-					    <div data-options="region:'west'," style="width:50%;height:100%;position:ralative;">
+					    <div data-options="region:'west'," style="width:60%;height:100%;position:ralative;">
 					    	<div style="width:100%;position:absolute;top:0;bottom:0;">
 					    		<table id="sourceListInfo" class="easyui-datagrid" style="width:100%;height:100%;"   
-			        					data-options="fitColumns:true,singleSelect:true,">  
+			        					data-options="fitColumns:true,singleSelect:false,">  
 								    <thead>   
 								        <tr>   
 								           <!--  <th data-options="field:'userId',width:100,">坐席ID</th>  -->
 								            <th data-options="field:'ck',checkbox:true">  
-								            <th data-options="field:'tableName',width:200,">表名称</th>
-								            <th data-options="field:'tableName',width:200,">列</th>   
+								            <th data-options="field:'tableName',width:150,">表名称</th>
+								            <th data-options="field:'fieldName',width:80,">已选标识列</th> 
+			              					<th data-options="field:'_operate',width:80,align:'center',formatter:formatOper1">状态</th> 
 								        </tr>   
 								    </thead>   
 								</table> 
 					    	</div>
 					    </div>   
-					    <div data-options="region:'center'" style="width:50%;height:100%;position:ralative;">
+					    <div data-options="region:'center'" style="width:40%;height:100%;position:ralative;">
 					    	<div style="width:100%;position:absolute;top:0;bottom:0;">
 					    		<table id="listInfo" class="easyui-datagrid" style="width:100%;height:100%;"   
-			        					data-options="fitColumns:true,singleSelect:true">  
+			        					data-options="fitColumns:true,singleSelect:true,">  
 								    <thead>   
 								        <tr>   
 								           <!--  <th data-options="field:'userId',width:100,">坐席ID</th>  -->  
-								            <th data-options="field:'fieldName',width:200,">表对应下的所有列</th>   
+								            <th data-options="field:'fieldName',width:100,">待选标识列</th> 
+								            <th data-options="field:'fieldType',width:100,">待选标识类型</th> 
+			              					<th data-options="field:'_operate',width:80,align:'center',formatter:formatOper2">操作</th>    
 								        </tr>   
 								    </thead>   
 								</table> 
@@ -175,7 +188,7 @@
 					</div>
 			    </div>   
 			    <div data-options="region:'east'" style="width:50%;height:100%;">
-					<ul>
+					<ul id="ul">
 						
 					</ul>
 			    </div> 
@@ -188,7 +201,6 @@
 					    <option value="5">5</option>
 					    <option value="10">10</option>
 					    <option value="15">15</option>
-					    <option value="20">20</option>   
 					</select> 
 					<label style="margin-right:30px;">分钟</label>
 					<a id="saveTimeBtn" href="javascript:void(0)" style="margin-right:5px;" class="easyui-linkbutton" data-options="" onclick="saveTimeBtn()">保存</a>
@@ -199,9 +211,9 @@
 	    </div>  
 	</div>
 	<script>
-	var bool = true;
+	var bool = true,rowIndex="",tableName = "",fileName="",tableId = "",boolType = false,state = "";
 	$(function(){
-		$("#sourceTest,#targetTest,#list,#detection,#startSync,#endSync,#tableListSave").hide();
+		$("#sourceTest,#targetTest,#list,#detection,#startSync,#endSync,#tableListSave,#targetDatabase,#targetSave,#sourceAddBtn,#cancel").hide();
 		$("#targetList").datagrid("hideColumn","tableId");
 		getSourceInfo();
 		getTargetList();
@@ -258,7 +270,7 @@
 				dataType: 'text',
 				success:function(res){
 					//console.log(res);
-					$.messager.alert("提示",res);
+					getCurrentTime (res);
 				}
 			})
 		}
@@ -280,6 +292,7 @@
 				}
 				$("#list,#detection,#tableListSave").show();
 				$("#sourceResult").html(res);
+				getCurrentTime (res);
 				getSourseExcel();
 			}
 		})
@@ -299,6 +312,9 @@
 				$("#sourceListInfo").datagrid("loadData",res);
 				$("#sourceListInfo").datagrid({
 					onSelect:function(index, row){
+						rowIndex = index;
+						tableName = row.tableName;
+						fileName = row.fileName;
 						console.log(row);
 						$.ajax({
 							url: 'TableConfigController',
@@ -319,17 +335,17 @@
 		})
 	}
 	
+
+	
 	//  表数据  -- 保存
 	function tableListSave(){
 		var listArr = [];
-		var sourceListInfo = $('#sourceListInfo').datagrid('getSelected');
-		var listInfo = $('#listInfo').datagrid('getSelected');
-		console.log(sourceListInfo);
-		console.log(listInfo);
+		var rows = $('#sourceListInfo').datagrid('getSelected');
 		listArr.push({
-			tableName: sourceListInfo,
-			fieldName: listInfo
+			tableName: rows.tableName,
+			fieldName: rows.fieldName
 		})
+		console.log(listArr);
 		$.ajax({
 			url: 'TableConfigController',
 			type: 'post',
@@ -339,9 +355,9 @@
 			},
 			dataType: 'text',
 			success:function(res){
-				$.messager.alert("提示",res);
+				getCurrentTime (res);
 			}
-		})
+		}) 
 	}
 	
 	//获取需要更新的表结构
@@ -354,95 +370,50 @@
 			},
 			dataType: 'json',
 			success:function(res){
+				console.log(res);
 				$("#sourceListInfo").datagrid("loadData",res);
 			}
 		})
 	}
-	//展示表对应的列
-	/* function sourceListInfo(index,row){
-		var row = $('#sourceListInfo').datagrid('getSelected');
-		console.log(row);
-		
-	} */
 	//检测 
 	function detection(){
-		var rows = $("#sourceListInfo").datagrid("getRows");
-		$.ajax({
-			url: 'TableConfigController',
-			type:'post',
-			data: {
-				action:"testTable",
-				tableName:rows.tableName
-			},
-			dataType: 'text',
-			success:function(res){
-				console.log(res);
-				$("#info").html(res);
+		var targetList = $("#targetList").datagrid("getRows");
+		var rows = $("#sourceListInfo").datagrid("getChecked");
+		console.log(rows);
+		console.log(rows.tableName);
+		for(var j=0; j<targetList.length;j++){
+			if(targetList[j].passTest == "0"){
+				$.messager.alert("提示","目标数据库有检测未通过的,请先检测通过");
+				return;
 			}
-		})
-	}
-	
-	
-	//目标数据库  -- 列表获取
-	function getTargetList(){
-		$.ajax({
-			url: 'TargetDbConfig',
-			type: 'post',
-			data: {
-				action:"getTargetDbConfig"
-			},
-			dataType: 'json',
-			success: function(res){
-				console.log(res);
-				for(var i=0; i<res.length; i++){
-					if(res[i].passTest == 0){
-						bool = false;
-					}
+		}
+		for(var i=0; i<rows.length; i++){
+			$.ajax({
+				url: 'TableConfigController',
+				type:'post',
+				data: {
+					action:"testTable",
+					tableName:rows[i].tableName
+				},
+				dataType: 'text',
+				success:function(res){
+					console.log(res);
+					getCurrentTime (res);
+					getUpdata();
+					//$("#sourceListInfo").datagrid("showColumn","_operate");//
 				}
-				$("#targetList").datagrid("loadData",res);
-			}
-		})
+			})
+		}
 	}
-	/* function formatOper(val,row,index){
-		console.log(row);
-		if(row.passTest == "0"){
-			return '<img src="images/unthrough.png">';
-		}else{
-			return '<img src="images/through.png">';
-	} */
-	//删除 
-	function delectBtn(){
-		var row = $('#targetList').datagrid('getSelected');
-		 var rowIndex=$('#targetList').datagrid('getRowIndex',$('#targetList').datagrid('getSelected')); 
-		console.log(row);
-		$.ajax({
-			url: 'TargetDbConfig',
-			type: 'post',
-			data: {
-				action:"dropTargetDbConfig",
-				tableId: row.tableId
-			},
-			dataType: 'text',
-			success: function(res){
-				console.log(res);
-				$('#targetList').datagrid("deleteRow",rowIndex);
-				$.messager.alert("提示",res);
-			}
-		})
+	
+	//目标数据库 -- 新增 
+	function addBtn(){
+		cancel();
+		$("#targetDatabase,#sourceAddBtn,#cancel").show();
+		$("#delectBtn,#targetSave").hide();
 	}
-	// 目标数据库 -- 回显
-	function targetList(index,row){
-		console.log(row);
-		$("#targetDatabaseType").combobox('setValue', row.dbType);
-		$("#targetIP").textbox("setValue", row.dbIp);
-		$("#targetPort").textbox("setValue", row.dbPort);
-		$("#targetUser").textbox("setValue", row.dbUser);
-		$("#targetPassword").textbox("setValue", row.dbPassword);
-		$("#targetSID").textbox("setValue", row.dbSid);
-	}
-	//目标数据库 -- 保存
-	function targetSave(){
-		$("#targetTest").show();
+	//目标数据库 -- 新增 保存
+	function sourceAddBtn(){
 		var targetDatabaseType = $("#targetDatabaseType").combobox('getText');
 		var targetIP = $("#targetIP").textbox('getText');
 		var targetPort = $("#targetPort").textbox('getText');
@@ -468,7 +439,148 @@
 				dataType: 'text',
 				success:function(res){
 					console.log(res);
-					$.messager.alert("提示",res);
+					getCurrentTime (res);
+				}
+			})
+		}
+	}
+	//取消按钮
+	function cancel(){
+		$("#targetDatabase,#sourceAddBtn,#cancel").hide();
+		$("#addBtn,#delectBtn").show();
+		$("#targetDatabaseType").combobox('setValue', "oracle");
+		$("#targetIP").textbox("setValue", "");
+		$("#targetPort").textbox("setValue", "");
+		$("#targetUser").textbox("setValue", "");
+		$("#targetPassword").textbox("setValue", "");
+		$("#targetSID").textbox("setValue", "");
+	}
+	//目标数据库  -- 列表获取
+	function getTargetList(){
+		$.ajax({
+			url: 'TargetDbConfig',
+			type: 'post',
+			data: {
+				action:"getTargetDbConfig"
+			},
+			dataType: 'json',
+			success: function(res){
+				console.log(res);
+				for(var i=0; i<res.length; i++){
+					if(res[i].passTest == 0){
+						bool = false;
+					}
+				}
+				$("#targetList").datagrid("loadData",res);
+			}
+		})
+	}
+	function formatOper(val,row,index){
+		console.log(row);
+		if(row.passTest == 0){
+			return '<img src="./images/unthrouge.png">';
+		}else{
+			return '<img src="./images/through.png">';
+		}
+   } 
+	
+ function formatOper1(val,row,index){
+	  if(row.passTest == "0"){
+			return '""';
+		}else{
+			return '<img src="./images/througe.png">';
+		}
+  }  function formatOper2(val,row,index){
+	  return '<a href="javascript:void(0)" id="modify'+index+'" onclick="modify('+index+')">确定</a>';
+  }
+  
+	// 表对应的列  
+	function modify(index){
+		var listInfo = $('#listInfo').datagrid('getRows');//获得所有行
+        var row = listInfo[index];//根据index获得其中一行。
+        //var sourceListInfo = $('#sourceListInfo').datagrid('getRows');//获得所有行
+        //var fileName = sourceListInfo[rowIndex].fieldName;//根据index获得其中一行。
+        getSynchronousState();
+        console.log(fileName);
+        if(state == 1){
+        	$.messager.alert("提示","请先结束同步操作");
+        	return;
+        }else{
+        	var obj = {};
+    		obj.tableName = tableName;
+    		obj.fieldName = row.fieldName;
+    		console.log(obj);
+    		$('#sourceListInfo').datagrid('updateRow',{
+    			index: rowIndex,
+    			row: obj
+    		});
+        }
+	}
+	//删除 
+	function delectBtn(){
+		var row = $('#targetList').datagrid('getSelected');
+		 var rowIndex=$('#targetList').datagrid('getRowIndex',$('#targetList').datagrid('getSelected')); 
+		console.log(row);
+		$.ajax({
+			url: 'TargetDbConfig',
+			type: 'post',
+			data: {
+				action:"dropTargetDbConfig",
+				tableId: row.tableId
+			},
+			dataType: 'text',
+			success: function(res){
+				console.log(res);
+				$('#targetList').datagrid("deleteRow",rowIndex);
+				getCurrentTime (res);
+			}
+		})
+	}
+	// 目标数据库 -- 回显
+	function targetList(index,row){
+		console.log(row);
+		tableId = row.tableId;
+		$("#targetDatabase,#targetSave").show();
+		$("#targetDatabaseType").combobox('setValue', row.dbType);
+		$("#targetIP").textbox("setValue", row.dbIp);
+		$("#targetPort").textbox("setValue", row.dbPort);
+		$("#targetUser").textbox("setValue", row.dbUser);
+		$("#targetPassword").textbox("setValue", row.dbPassword);
+		$("#targetSID").textbox("setValue", row.dbSid);
+		$("#targetTest").hide();
+		$("#targetResult").html("");
+	}
+	//目标数据库 -- 保存
+	function targetSave(){
+		$("#targetTest").show();
+		var targetDatabaseType = $("#targetDatabaseType").combobox('getText');
+		var targetIP = $("#targetIP").textbox('getText');
+		var targetPort = $("#targetPort").textbox('getText');
+		var targetUser = $("#targetUser").textbox('getText');
+		var targetPassword = $("#targetPassword").textbox('getText');
+		var targetSID = $("#targetSID").textbox('getText');
+		if(targetDatabaseType == "" || targetIP == "" || targetPort == "" || targetUser == "" || targetPassword == "" || targetSID == ""){
+			$.messager.alert("提示","所选项不能为空");
+			return;
+		}else{
+			$.ajax({
+				url:'TargetDbConfig',
+				type:'post',
+				data:{
+					action:'addTargetDbConfig',
+					tableId:tableId,
+					dbType:targetDatabaseType,
+					dbIp:targetIP,
+					dbPort:targetPort,
+					dbSid:targetSID,
+					dbUser:targetUser,
+					dbPassword:targetPassword
+				},
+				dataType: 'text',
+				success:function(res){
+					console.log(res);
+					tableId = "";
+					getCurrentTime (res);
 				}
 			})
 		}
@@ -497,25 +609,13 @@
 			dataType: 'text',
 			success: function(res){
 				console.log(res);
-				$.messager.alert("提示",res);
+				$("#targetResult").html(res);
+				getTargetList();
+				getCurrentTime (res);
 			}
 		})
 	}
 	
-	//判断 是否都通过 打钩
-	function result(){
-		
-	}
-	//获取更新的表和标识
-	function signs(){
-		$.ajax({
-			url: 'TableConfigController',
-			type: 'post',
-			data: {
-				
-			}
-		})
-	}
 	
 	//获取开启状态
 	function getSynchronousState(){
@@ -528,6 +628,7 @@
 			dataType: 'json',
 			success:function(res){
 				console.log(res);
+				state = res.isStart;
 				if(res.isStart == 0){
 					if(bool){
 						$("#startSync").show();	
@@ -537,10 +638,6 @@
 				}
 			}
 		})
-	}
-	// 获取间隔时间
-	function getTime(){
-		
 	}
 	
 	//保存间隔时间
@@ -557,6 +654,7 @@
 			dataType: 'text',
 			success:function(res){
 				console.log(res);
+				getCurrentTime (res);
 			}
 		})
 	}
@@ -570,6 +668,7 @@
 			},
 			success: function(res){
 				console.log(res);
+				getCurrentTime (res);
 			}
 		})
 	}
@@ -585,6 +684,58 @@
 		$("#endSync").hide();
 		serverType("end");
 	}
+	
+	// 获取系统时间
+	function getCurrentTime(content) {
+            var date = new Date();
+            var month = date.getMonth() + 1;
+
+            var strDate = date.getDate();
+            if (month >= 1 && month <= 9) {
+                month = "0" + month;
+            }
+            if (strDate >= 0 && strDate <= 9) {
+                strDate = "0" + strDate;
+            }
+            var hours = date.getHours();
+            if (hours >= 0 && hours <= 9) {
+                if (hours == 0) {
+                    hours = "00";
+                } else {
+                    hours = "0" + hours;
+                }
+            }
+            var minutes = date.getMinutes();
+            if (minutes >= 0 && minutes <= 9) {
+                if (minutes == 0) {
+                    minutes = "00";
+                } else {
+                    minutes = "0" + minutes;
+                }
+            }
+            var seconds = date.getSeconds();
+            if (seconds >= 0 && seconds <= 9) {
+                if (seconds == 0) {
+                    seconds = "00";
+                } else {
+                    seconds = "0" + seconds;
+                }
+            }
+
+
+            var currentdate = date.getFullYear() + "." + month + "." + strDate + " " + hours + ":" + minutes +
+                ":" + seconds;
+
+            console.log(currentdate);
+            //2017.07.11 15:14:44
+            //time = currentdate;
+            var str = '<li class="chatRecord" style="margin-top:4px;">'
+		         +'<span class="time" style="fontsize: 12px;color:#58c5c7;margin:5px 5px 5px 10px;">' + currentdate + '</span>'
+		         +'<span class="content" style="font-size: 12px;color:#58c5c7;">' + content + '</span>'
+		         +'</li>'
+		    $("#ul").append(str);
+            //return currentdate;
+        }
 	</script>
 </body>
 </html>

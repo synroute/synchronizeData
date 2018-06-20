@@ -1,0 +1,53 @@
+body{
+	margin:0px;
+	padding:0px;
+}
+#toolbarBizSelect{
+	width:100%;
+	font-size:14px;
+	height:38px;
+	background-color:#ffffff;
+	padding-left: 20px;
+	border-left:none;
+	border-right:none;
+	border-top:none;
+	border-bottom:1px solid #dfe6ec;
+	color:#083f5d;
+}
+.westLayOutDiv{
+	border-top:none;
+	border-left:none;
+	border-bottom:none;
+}
+.northLayOutDiv{
+	height:50px;
+	overflow:hidden;
+	line-height:50px;
+	border-top:none;
+	border-left:none;
+	border-right:none
+}
+.northLayOutDivFont{
+	text-align:left;
+	padding-left:20px;
+	color:#1f2d3d;
+	font-size:12px;
+	font-weight:bold
+}
+.northLayOutDivButton{
+	padding-right:20px;
+	text-align:right;
+}
+.centerLayOutDiv{
+	padding-left:20px;
+	padding-right:20px;
+	padding-top:20px;
+	border:none;
+	overflow:hidden;
+}
+.divCenterContent{
+	margin-bottom:10px;
+}
+
+
+
