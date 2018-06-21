@@ -211,6 +211,38 @@
 	    </div>  
 	</div>
 	<script>
+	
+	/* var webSocket = new WebSocket('ws://localhost:8080/websocket');
+	webSocket.onerror = function(event) {
+		alert("连接建立error");
+        onError(event)
+    };
+    webSocket.onopen = function(event) {
+    	alert("连接建立open");
+        onOpen(event)
+    };
+    webSocket.onmessage = function(event) {
+    	debugger;
+        onMessage(event)
+    };
+    function onMessage(event) {
+    	getCurrentTime(event.data);
+    }
+    function onOpen(event) {
+    	getCurrentTime("socket连接建立Open");
+    }
+    function onError(event) {
+    	getCurrentTime("socket连接失败");
+    }
+    function start() {
+    	alert("连接建立start");
+        webSocket.send('hello');
+        return false;
+    } */
+	
+	
+	
+	
 	var bool = true,rowIndex="",tableName = "",fileName="",tableId = "",boolType = false,state = "";
 	$(function(){
 		$("#sourceTest,#targetTest,#list,#detection,#startSync,#endSync,#tableListSave,#targetDatabase,#targetSave,#sourceAddBtn,#cancel").hide();

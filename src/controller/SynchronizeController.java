@@ -16,16 +16,19 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
 
 import data.IntervalService;
 import data.SynchronizeService;
 
 
 /**
-* @author yagnwentian
+* @author yangwentian
 * @version 创建时间：2018年6月13日 上午10:23:22
 * 类说明
 */
+
 @SuppressWarnings("all")
 public class SynchronizeController extends HttpServlet {
 	public static Logger logger = Logger.getLogger(SynchronizeController.class);
@@ -102,11 +105,15 @@ public class SynchronizeController extends HttpServlet {
 }
 
 //线程
+//@ServerEndpoint("/websocket")
 class MyThread1 extends Thread {  
 	public static Logger logger = Logger.getLogger(SynchronizeController.class);
 	int interval = SynchronizeService.getInterval();
 //	int interval = 5000;
+	//String message, Session session
     public void run() {  
+    	
+//    	session.getBasicRemote().sendText("socket连接");
         while (!SynchronizeController.getStopThread()) {// 线程未中断执行循环  
         	//记录时间   加日志
         	Date now = new Date(); 
@@ -115,6 +122,12 @@ class MyThread1 extends Thread {
         	System.out.println("TIME:" + time);
         	
         	logger.info(String.format("同步时间"+time));
+        	
+        	
+//        	System.out.println("Received: " + message);
+//        	int sentMessages = 0;
+//        	session.getBasicRemote().sendText("This is an intermediate server message. Count: " + sentMessages);
+//            sentMessages++;
         	
         	//同步数据  捕获异常，加日志
         	SynchronizeService.synchronizeData();

@@ -55,7 +55,7 @@ public class TableConfigService {
 		}	
 		try {
 			dbConn = DbUtil.getConnection(url,sourceUser,sourcePwd);
-			szSql = "SELECT TABLE_NAME FROM USER_TABLES";
+			szSql = "SELECT TABLE_NAME FROM USER_TABLES order by TABLE_NAME";
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while (rs.next()) {
@@ -137,11 +137,11 @@ public class TableConfigService {
 		try {
 			dbConn = DbUtil.getConnection();
 			dbConn.setAutoCommit(false);	
-			szSql = String.format("SELECT TABLEID FROM SYNCHRON_CFG_DBCONN  where TYPE= 1") ;
+			szSql = String.format("SELECT ID FROM SYNCHRON_CFG_DBCONN  where TYPE= 1") ;
 			PreparedStatement stmt2 = dbConn.prepareStatement(szSql);
 			ResultSet rs2 = stmt2.executeQuery();
 			while (rs2.next()) {
-				tableId = rs.getInt(1);
+				tableId = rs2.getInt(1);
 				JsonParser jsonParser=new JsonParser();
 				JsonArray jsonArray=jsonParser.parse(data).getAsJsonArray();
 				for (int i = 0; i < jsonArray.size(); i++) {
