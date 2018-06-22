@@ -155,13 +155,13 @@
 					    <div data-options="region:'west'," style="width:60%;height:100%;position:ralative;">
 					    	<div style="width:100%;position:absolute;top:0;bottom:0;">
 					    		<table id="sourceListInfo" class="easyui-datagrid" style="width:100%;height:100%;"   
-			        					data-options="fitColumns:true,singleSelect:false,idField:tableName">  
+			        					data-options="fitColumns:true,singleSelect:false">  
 								    <thead>   
 								        <tr>   
 								           <!--  <th data-options="field:'userId',width:100,">坐席ID</th>  -->
 								            <th data-options="field:'ck',checkbox:true">  
-								            <th data-options="field:'tableName',width:150,">表名称</th>
-								            <th data-options="field:'fieldName',width:80,">已选标识列</th> 
+								            <th data-options="field:'tableName',width:100,">表名称</th>
+								            <th data-options="field:'fieldName',width:100,">已选标识列</th> 
 			              					<th data-options="field:'_operate',width:80,align:'center',formatter:formatOper1">状态</th> 
 								        </tr>   
 								    </thead>   
@@ -177,7 +177,7 @@
 								           <!--  <th data-options="field:'userId',width:100,">坐席ID</th>  -->  
 								            <th data-options="field:'fieldName',width:100,">待选标识列</th> 
 								            <th data-options="field:'fieldType',width:100,">待选标识类型</th> 
-			              					<th data-options="field:'_operate',width:80,align:'center',formatter:formatOper2">操作</th>    
+			              					<th data-options="field:'operate',width:80,align:'center',formatter:formatOper2">操作</th>    
 								        </tr>   
 								    </thead>   
 								</table> 
@@ -249,9 +249,20 @@
 	$(function(){
 		$("#sourceTest,#targetTest,#list,#detection,#startSync,#endSync,#tableListSave,#targetDatabase,#targetSave,#sourceAddBtn,#cancel").hide();
 		$("#targetList").datagrid("hideColumn","tableId");
+		//$("#sourceListInfo").datagrid("hideColumn","_operate");
+		var username = getCookie("0000");
+		console.log(username);
+		if(!username){
+			window.location.href="index.jsp";
+			return;
+		}
 		getSourceInfo();
 		getTargetList();
 		getSynchronousState();
+		watchAll();
+		return;
+		
+		
 	})
 	
 	//加载  -- 来源数据库
@@ -276,6 +287,7 @@
 				if(res[0].passTest == "1"){
 					$("#sourceTest").show();
 					sourceTest();
+					getUpdata();
 				}
 			}
 		})
@@ -324,7 +336,7 @@
 				action:"testSourceDbConfig"
 			},
 			dataType: 'text',
-			//async: false,
+			async: false,
 			success: function(res){
 				//console.log(res);
 				if(res != "获取来源数据库连接成功"){
@@ -334,7 +346,6 @@
 				$("#sourceResult").html(res);
 				getCurrentTime (res);
 				getSourseExcel();
-				getUpdata();
 				watchAll();
 			}
 		})
@@ -417,7 +428,7 @@
 			dataType: 'json',
 			async: false,
 			success:function(res){
-				//console.log(res);
+				console.log(res);
 				list = res;
 				//console.log(data);
 				//console.log(list);
@@ -430,8 +441,6 @@
 								 index: j,
 								 row: res[i]
 							 });
-
-
 						}
 					}
 				}
@@ -549,9 +558,8 @@
 	
  function formatOper1(val,row,index){
 	 var sourceListInfo = $("#sourceListInfo").datagrid("getChecked");
-	 //console.log(sourceListInfo);
-	 //console.log(data);
-	 if(dataState != 0){
+	 console.log(dataState);
+	 if(dataState == 1){
 		 for(var i=0; i<data.length; i++){
 			 for(var j=0; j<sourceListInfo.length; j++){
 				 if(data[i].tableName == sourceListInfo[j].tableName){
@@ -821,6 +829,8 @@
 		function initiatingSync(){
 			 $.messager.confirm('确认','初始化同步将清空目标数据库中数据并重新同步，耗时较长，请确认',function(row){
 	                if(row){  
+	                	$("#startSync").hide();
+	        			$("#endSync").show();
 	                    $.ajax({
 							url: 'SynchronizeController',
 							type: 'post',
@@ -844,6 +854,7 @@
 					action:"allTablePass"
 				},
 				dataType: 'text',
+				//async: false,
 				success:function(res){
 					dataState = res;
 					//console.log(res);
@@ -851,11 +862,39 @@
 						$("#info").html("有表未检测通过，请重新检测");
 						return;
 					}else{
-						
+						//$("#sourceListInfo").datagrid("showColumn","_operate");
 					}
 				}
 			})
 		}
+		
+		 ///设置cookie
+	    function setCookie(c_name, value, expire) {
+	        var date = new Date()
+	        date.setSeconds(date.getSeconds() + expire)
+	        document.cookie = c_name + "=" + escape(value) + "; expires=" + date.toGMTString()
+	        // console.log(document.cookie)
+	    }
+
+	    function getCookie(c_name) {
+	        if (document.cookie.length > 0) {
+	            let c_start = document.cookie.indexOf(c_name + "=")
+	            if (c_start != -1) {
+	                c_start = c_start + c_name.length + 1
+	                var c_end = document.cookie.indexOf(";", c_start)
+	                if (c_end == -1) c_end = document.cookie.length
+	                return unescape(document.cookie.substring(c_start, c_end))
+	            }
+	        }
+	        return ""
+	    }
+
+
+	    function delCookie(c_name) {
+	        setCookie(c_name, "", -1)
+	    }
+		
+		
 	</script>
 </body>
 </html>

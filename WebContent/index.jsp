@@ -38,6 +38,7 @@
 	</div>
 </div>
 <script type="text/javascript">
+		var state = "";
 		window.onload = function() {
 			var config = {
 				vx : 4,
@@ -55,13 +56,16 @@
 		}
 		
 		function login(){
+			state = 1;
 		    window.event.returnValue=false;
 	        var username = document.getElementById('username').value;
 	        var password = document.getElementById('password').value;
 	        // 用户名和密码都不为空
 	        if(username&&password){
 	    	    if(username==0000 && password==123){
-	     		    window.location.href="aa.jsp"; 
+	    	    		//console.log(111);
+	    	    		window.location.href="aa.jsp";
+	    	    		setCookie(username,password,300);
 		           /*  var url = "http://127.0.0.1:8080/synchronizeData/aa.jsp";
 		            location.href = url; //从地址栏获取返回地址，实现跳转   */
 	    	    } else{
@@ -72,6 +76,36 @@
 	        }
 
 		}
+		
+
+		 ///设置cookie
+	    function setCookie(c_name, value, expire) {
+	        var date = new Date()
+	        date.setSeconds(date.getSeconds() + expire)
+	        document.cookie = c_name + "=" + escape(value) + "; expires=" + date.toGMTString()
+	        // console.log(document.cookie)
+	    }
+
+	    function getCookie(c_name) {
+	        if (document.cookie.length > 0) {
+	            let c_start = document.cookie.indexOf(c_name + "=")
+	            if (c_start != -1) {
+	                c_start = c_start + c_name.length + 1
+	                var c_end = document.cookie.indexOf(";", c_start)
+	                if (c_end == -1) c_end = document.cookie.length
+	                return unescape(document.cookie.substring(c_start, c_end))
+	            }
+	        }
+	        return ""
+	    }
+
+
+	    function delCookie(c_name) {
+	        setCookie(c_name, "", -1)
+	    }
+		
+		
+		
 	</script>
 	<script type="text/javascript" src="js/canvas-particle.js"></script>
 </body>
