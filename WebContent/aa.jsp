@@ -41,35 +41,30 @@
 	</main>
 	<div class="easyui-layout" style="width:100%;height:100%">
 	  	<div data-options="region:'north'" style="width:100%;height:40%;">
-	  		<div class="easyui-layout" style="width:100%;height:100%;">   
+	  		<div class="easyui-layout" style="width:99%;height:100%;">   
 			    <div data-options="region:'center',title:'来源数据库'" style="width:30%;height:100%;">
-					<div id="sourceDatabase" style="margin:0 auto;width:100%;height:100%;">
-						<div class="item" style="width:70%;margin-top:10px;">
-							<select id="sourceDatabaseType" class="easyui-combobox" name="dept" style="width:100%;" data-options="label:'数据库类型',labelAlign:'right',editable:false,">   
-							    <option value="oracle">oracle</option>
-							    <option value="mySQL">mySQL</option>   
-							</select> 
-						</div> 
-						<div class="item" style="width:70%">
-			    			<input id="sourceIP" class="easyui-textbox" style="width: 100%;"
-									data-options="label:'IP',labelAlign:'right',">
-			    		</div>
-						<div class="item" style="width:70%">
-			    			<input id="sourcePort" class="easyui-textbox" style="width: 100%;"
-									data-options="label:'端口',labelAlign:'right',">
-			    		</div>
-						<div class="item" style="width:70%">
-			    			<input id="sourceUser" class="easyui-textbox" style="width: 100%;"
-									data-options="label:'用户名',labelAlign:'right',">
-			    		</div>
-						<div class="item" style="width:70%">
-			    			<input id="sourcePassword" class="easyui-textbox" style="width: 100%;"
-									data-options="label:'密码',labelAlign:'right',">
-			    		</div>
-						<div class="item" style="width:70%">
-			    			<input id="sourceSID" class="easyui-textbox" style="width: 100%;"
-									data-options="label:'SID',labelAlign:'right',">
-			    		</div>
+					<div id="sourceDatabase" style="margin:0 auto;width:100%;">
+						 <div class="item" style="width:80%;margin-top:10px;">
+						        <select id="sourceDatabaseType" class="easyui-combobox" name="dept" style="width:90%;" data-options="label:'数据库类型',labelAlign:'right',editable:false,">   
+								    <option value="oracle">oracle</option>
+								    <option value="mySQL">mySQL</option>   
+								</select>
+						    </div>
+						     <div class="item" style="width:80%">
+						        <input id="sourceIP" class="easyui-textbox" style="width: 90%;" data-options="label:'IP',labelAlign:'right',">
+						    </div>
+						    <div class="item" style="width:80%">
+						        <input id="sourcePort" class="easyui-textbox" style="width: 90%;" data-options="label:'端口',labelAlign:'right',">
+						    </div>
+						    <div class="item" style="width:80%">
+						        <input id="sourceUser" class="easyui-textbox" style="width: 90%;" data-options="label:'用户名',labelAlign:'right',">
+						    </div>
+						     <div class="item" style="width:80%">
+						        <input id="sourcePassword" class="easyui-textbox" style="width: 90%;" data-options="label:'密码',labelAlign:'right',">
+						    </div>
+						    <div class="item" style="width:80%;margin-bottom:10px;">
+						        <input id="sourceSID" class="easyui-textbox" style="width: 90%;" data-options="label:'SID',labelAlign:'right',">
+						    </div>
 			    		<div class="item" style="width:70%;text-align:right;">
 			    			<a id="sourceSaveBtn" href="javascript:void(0)" style="margin-right:5px;" class="easyui-linkbutton" data-options="" onclick="sourceSaveBtn()">保存</a>
 			    			<a id="sourceTest" href="javascript:void(0)" style="margin-right:5px;" class="easyui-linkbutton" data-options="" onclick="sourceTest()">测试</a>
@@ -77,8 +72,8 @@
 			    		</div>
 					</div>
 			    </div> 
-			    <div data-options="region:'east',title:'目标数据库'" style="width:70%;height:100%;">
-			    	<div class="easyui-layout" style="width:100%;height:100%;">  
+			    <div data-options="region:'east',title:'目标数据库'" style="width:69%;height:100%;margin:0;">
+			    	<div class="easyui-layout" style="width:99%;height:100%;">  
 					    <div data-options="region:'west'" style="width:60%;height:100%;position:relative;">
 					    	<div style="height:40px;line-height:35px;text-align:right;">
 					    		<a id="delectBtn" href="javascript:void(0)" style="margin-right:5px;" class="easyui-linkbutton" data-options="" onclick="delectBtn()">删除</a>
@@ -142,7 +137,7 @@
 				</div> 
 		    </div> 
 	  	</div> 
-	    <div data-options="region:'center'" style="width:100%;height:50%;">
+	    <div data-options="region:'center'" style="width:98%;height:50%;">
 	    	<div class="easyui-layout" style="width:100%;height:100%;"> 
 			    <div data-options="region:'center'" style="width:50%;height:100%;">
 			    	<div style="width:100%;height:40px;line-height:35px;text-align:right;">
