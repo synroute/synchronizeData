@@ -69,7 +69,7 @@ public class TargetDbConfig extends HttpServlet {
 				logger.error(String.format("addTargetDbConfig异常"+e.toString()));
 				e.printStackTrace();
 			}
-		} else if (szActionValue.equals("modifyTargetDbConfig")) {//添加目标数据库配置
+		} else if (szActionValue.equals("modifyTargetDbConfig")) {//修改目标数据库配置
 			logger.info(String.format("modifyTargetDbConfig请求成功"));
 			try {
 				String msg = "";

@@ -290,7 +290,7 @@ public class TableConfigService {
 		String pwd = "";
 		try {
 			dbConn = DbUtil.getConnection();
-			szSql = "select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST from SYNCHRON_CFG_DBCONN where type =1";
+			szSql = "select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST,ID from SYNCHRON_CFG_DBCONN where type =1";
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while (rs.next()) {
@@ -303,11 +303,13 @@ public class TableConfigService {
 					url += rs.getString(4);
 				}
 				user = rs.getString(5);
-				pwd = rs.getString(6);	
+				pwd = rs.getString(6);
+				String dbId = rs.getString(9);
 				JSONObject jsonObject = new JSONObject();
 				jsonObject.put("url", url);
 				jsonObject.put("user", user);
 				jsonObject.put("pwd", pwd);
+				jsonObject.put("dbId", dbId);
 				targetInfo.add(jsonObject);
 			}
 		} catch (Exception e) {
@@ -322,6 +324,7 @@ public class TableConfigService {
 				String url2 = jsonObject.getString("url");
 				String user2 = jsonObject.getString("user");
 				String pwd2 = jsonObject.getString("pwd");
+				int dbId = Integer.valueOf(jsonObject.getString("dbId"));
 				dbConn = DbUtil.getConnection(url2,user2,pwd2);
 				int count = 0;
 				szSql = String.format("SELECT count(*) FROM USER_TABLES where TABLE_NAME = '%s'", tableName);
@@ -329,12 +332,14 @@ public class TableConfigService {
 				rs = stmt.executeQuery();
 				if (rs.next()) {
 					count = rs.getInt(1);
+					updateDbStateInfo(1,dbId);
 				}
 				if (count == 0) {
 					msg += tableName;
 					msg += "在";
 					msg += url2 ;
 					msg += "中不存在" ;
+					updateDbStateInfo(0,dbId);
 					return msg;
 				}
 				DbUtil.closeAll(rs, stmt, dbConn);	
@@ -347,6 +352,55 @@ public class TableConfigService {
 			DbUtil.closeAll(rs, stmt, dbConn);
 		}
 		return tableName+"测试通过";
+	}
+
+	private static void updateDbStateInfo(int num, int dbId) {
+		Connection dbConn = null;
+		PreparedStatement stmt = null;
+		String szSql = "";
+		try {
+			dbConn = DbUtil.getConnection();
+			szSql = String.format("update SYNCHRON_CFG_DBCONN  set TABLEPASSTEST=%d  where TYPE =1 and ID =%d",num,dbId);
+			stmt = dbConn.prepareStatement(szSql);
+			stmt.execute();	
+		} catch (SQLException e) {
+			logger.error(String.format("updateDbStateInfo异常"+e.toString()));
+			e.printStackTrace();
+			return;
+		}  catch (Exception e) {
+			logger.error(String.format("updateDbStateInfo异常"+e.toString()));
+			e.printStackTrace();
+			return;
+		} finally {
+			DbUtil.closeDbST(stmt, dbConn);
+		}	
+		return;
+	}
+
+	public static String allTablePass() {
+		Connection dbConn = null;
+		String szSql = "";
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		String msg = "0";
+		try {
+			dbConn = DbUtil.getConnection();
+			szSql = "select count(*) from SYNCHRON_CFG_DBCONN where type =1 and tablepasstest = 0";
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				if (rs.getInt(1)==0) {
+					msg = "1";
+				}
+			}
+		} catch (Exception e) {
+			logger.error(String.format("getTableAndField"+e.toString()));
+			e.printStackTrace();
+			return msg;
+		} finally {
+			DbUtil.closeAll(rs, stmt, dbConn);
+		}	
+		return msg;
 	}
 
 }

@@ -93,6 +93,11 @@ public class TableConfigController extends HttpServlet {
 			String msg = "";
 			msg = TableConfigService.testTable(tableName);
 			printWriter.print(msg);
+		}  else if (szActionValue.equals("allTablePass")) {//是否全部通过
+			logger.info(String.format("allTablePass请求成功"));
+			String msg = "";
+			msg = TableConfigService.allTablePass();
+			printWriter.print(msg);
 		} 
 	}
 

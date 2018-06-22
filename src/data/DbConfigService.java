@@ -175,7 +175,7 @@ public class DbConfigService {
 		}		
 		try {
 //			dbConn = DbUtil.getConnection();
-			szSql = String.format("insert into SYNCHRON_CFG_DBCONN (DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST,ID) values ('%s','%s','%s','%s','%s','%s',1,0,S_SYNCHRON_CFG_DBCONN.nextval)", dbType,dbIp,dbPort,dbSid,dbUser,dbPassword);
+			szSql = String.format("insert into SYNCHRON_CFG_DBCONN (DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST,ID,TABLEPASSTEST) values ('%s','%s','%s','%s','%s','%s',1,0,S_SYNCHRON_CFG_DBCONN.nextval,0)", dbType,dbIp,dbPort,dbSid,dbUser,dbPassword);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();	
 			DbUtil.closeST(stmt);
@@ -337,7 +337,7 @@ public class DbConfigService {
 		}		
 		try {
 //			dbConn = DbUtil.getConnection();
-			szSql = String.format("update SYNCHRON_CFG_DBCONN  set DBTYPE='%s',DBIP='%s',DBPORT='%s',DBSID='%s',DBUSER='%s',DBPWD='%s',PASSTEST=0 where ID = '%s' ", dbType,dbIp,dbPort,dbSid,dbUser,dbPassword,tableId);
+			szSql = String.format("update SYNCHRON_CFG_DBCONN  set DBTYPE='%s',DBIP='%s',DBPORT='%s',DBSID='%s',DBUSER='%s',DBPWD='%s',PASSTEST=0,TABLEPASSTEST=0  where ID = '%s' ", dbType,dbIp,dbPort,dbSid,dbUser,dbPassword,tableId);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();	
 			DbUtil.closeST(stmt);
