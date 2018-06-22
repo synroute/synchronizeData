@@ -41,7 +41,7 @@
 	</main>
 	<div class="easyui-layout" style="width:100%;height:100%">
 	  	<div data-options="region:'north'" style="width:100%;height:40%;">
-	  		<div class="easyui-layout" style="width:99%;height:100%;">   
+	  		<div class="easyui-layout" style="width:99.5%;height:100%;">   
 			    <div data-options="region:'center',title:'来源数据库'" style="width:30%;height:100%;">
 					<div id="sourceDatabase" style="margin:0 auto;width:100%;">
 						 <div class="item" style="width:80%;margin-top:10px;">
@@ -72,8 +72,8 @@
 			    		</div>
 					</div>
 			    </div> 
-			    <div data-options="region:'east',title:'目标数据库'" style="width:69%;height:100%;margin:0;">
-			    	<div class="easyui-layout" style="width:99%;height:100%;">  
+			    <div data-options="region:'east',title:'目标数据库'" style="width:70%;height:100%;margin:0;">
+			    	<div class="easyui-layout" style="width:99.5%;height:100%;">  
 					    <div data-options="region:'west'" style="width:60%;height:100%;position:relative;">
 					    	<div style="height:40px;line-height:35px;text-align:right;">
 					    		<a id="delectBtn" href="javascript:void(0)" style="margin-right:5px;" class="easyui-linkbutton" data-options="" onclick="delectBtn()">删除</a>
