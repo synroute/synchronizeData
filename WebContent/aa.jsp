@@ -622,6 +622,7 @@
 	// 目标数据库 -- 回显
 	function targetList(index,row){
 		//console.log(row);
+		cancel();
 		tableId = row.tableId;
 		$("#targetDatabase,#targetSave").show();
 		$("#targetDatabaseType").combobox('setValue', row.dbType);
@@ -766,6 +767,7 @@
 		$("#startSync").show();
 		$("#endSync").hide();
 		serverType("end");
+		state = "";
 	}
 	
 	// 获取系统时间
