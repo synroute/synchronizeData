@@ -431,4 +431,107 @@ public class SynchronizeService {
 		}	
 		return;
 	}
+
+	public static void dropSynchronizeData() {
+		//删除配置信息
+		cleanConfigInfo();
+		//删除目标数据库数据
+		deleteDateFromTargetDb();	
+	}
+
+	//删除目标数据库数据
+	private static void deleteDateFromTargetDb() {
+		Connection dbConn = null;
+		String szSql = "";
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try {
+			dbConn = DbUtil.getConnection();
+			szSql = "select TABLENAME,TABLEID from SYNCHRON_CFG_TABLE order by TABLEID";
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			while (rs.next()) {
+				String tableName = rs.getString(1);
+				int dbId = rs.getInt(2);
+				dropTargetData(tableName,dbId);
+			}
+		} catch (Exception e) {
+			logger.error(String.format("deleteDateFromTargetDb异常"+szSql));
+			e.printStackTrace();
+		} finally {
+			DbUtil.closeAll(rs, stmt, dbConn);
+		}
+		logger.info(String.format("删除目标数据库数据"));
+		return;
+	}
+
+	private static void dropTargetData(String tableName, int dbId) {	
+		Connection dbConn = null;
+		String szSql = "";
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		String targetUrl = "";
+		String targetUser = "";
+		String targetPwd = "";
+		try {
+			dbConn = DbUtil.getConnection();
+			szSql = String.format("select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD from SYNCHRON_CFG_DBCONN where type =1 and ID = '%s'", dbId);
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				if (rs.getString(1).equals("oracle")) {
+					targetUrl += "jdbc:oracle:thin:@";
+					targetUrl += rs.getString(2);
+					targetUrl += ":";
+					targetUrl += rs.getString(3);
+					targetUrl += ":";
+					targetUrl += rs.getString(4);
+				}
+				targetUser = rs.getString(5);
+				targetPwd = rs.getString(6);	
+			}
+		} catch (Exception e) {
+			logger.error(String.format("dropTargetData异常"+e.toString()));
+			e.printStackTrace();
+		} finally {
+			DbUtil.closeAll(rs, stmt, dbConn);
+		}	
+		try {
+			dbConn = DbUtil.getConnection(targetUrl, targetUser, targetPwd);	
+			szSql = String.format("delete from '%s'", tableName);
+			stmt = dbConn.prepareStatement(szSql);
+			stmt.execute();		
+			DbUtil.closeST(stmt);
+		} catch (Exception e) {
+			logger.error(String.format("dropTargetData异常"+e.toString()));
+			e.printStackTrace();
+		} finally {
+			DbUtil.closeDbST(stmt, dbConn);
+		}	
+	}
+
+	//重置同步数据标识
+	private static void cleanConfigInfo() {
+		Connection dbConn = null;
+		PreparedStatement stmt = null;
+		String szSql = "";
+		try {
+			dbConn = DbUtil.getConnection();
+			szSql = String.format("update SYNCHRON_CFG_DBCONN  set IDENTIFY='%s' ","");
+			stmt = dbConn.prepareStatement(szSql);
+			stmt.execute();	
+		} catch (SQLException e) {
+			logger.error(String.format("cleanConfigInfo异常"+e.toString()));
+			e.printStackTrace();
+			return;
+		}  catch (Exception e) {
+			logger.error(String.format("cleanConfigInfo异常"+e.toString()));
+			e.printStackTrace();
+			return;
+		} finally {
+			DbUtil.closeDbST(stmt, dbConn);
+		}	
+		logger.info(String.format("重置同步数据标识成功"));
+		return;
+	}
 }

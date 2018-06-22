@@ -69,11 +69,17 @@ public class SynchronizeController extends HttpServlet {
 		if (state.equals("end")) {
 			this.destory();
 			return;
-		} if (state.equals("start")&&!startThread) {	
-			this.restart();	
-			
-		}
-				
+		} else if (state.equals("start")&&!startThread) {	
+			this.restart();		
+		} else if (state.equals("initSynchronize")) {
+			logger.info(String.format("初始化同步"));
+			//停线程
+			this.destory();
+			//删除表中数据（配置表中数据，目标表中数据）
+			SynchronizeService.dropSynchronizeData();
+			//重新启动线程
+			this.restart();
+		}			
 	}
 	
 	public void restart() {
