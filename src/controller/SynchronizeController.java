@@ -66,10 +66,10 @@ public class SynchronizeController extends HttpServlet {
 		request.setCharacterEncoding("UTF-8");
 		response.setContentType("text/html;charset=UTF-8");
 		String state = request.getParameter("action");
-		if (state.equals("end")) {
+		if (state.equals("end")) {//结束线程
 			this.destory();
 			return;
-		} else if (state.equals("start")&&!startThread) {	
+		} else if (state.equals("start")&&!startThread) {//重新启动线程	
 			this.restart();		
 		} else if (state.equals("initSynchronize")) {
 			logger.info(String.format("初始化同步"));

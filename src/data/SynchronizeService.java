@@ -498,10 +498,9 @@ public class SynchronizeService {
 		}	
 		try {
 			dbConn = DbUtil.getConnection(targetUrl, targetUser, targetPwd);	
-			szSql = String.format("delete from '%s'", tableName);
+			szSql = String.format("delete from %s", tableName);
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();		
-			DbUtil.closeST(stmt);
 		} catch (Exception e) {
 			logger.error(String.format("dropTargetData异常"+e.toString()));
 			e.printStackTrace();
@@ -517,7 +516,7 @@ public class SynchronizeService {
 		String szSql = "";
 		try {
 			dbConn = DbUtil.getConnection();
-			szSql = String.format("update SYNCHRON_CFG_DBCONN  set IDENTIFY='%s' ","");
+			szSql = String.format("update SYNCHRON_CFG_TABLE  set IDENTIFY='%s' ","");
 			stmt = dbConn.prepareStatement(szSql);
 			stmt.execute();	
 		} catch (SQLException e) {
