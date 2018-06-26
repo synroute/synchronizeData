@@ -111,6 +111,11 @@ public class TableConfigService {
 			szSql = String.format("SELECT b.COLUMN_NAME,b.DATA_TYPE,a.COMMENTS FROM USER_TAB_COLUMNS b,USER_COL_COMMENTS a WHERE b.TABLE_NAME = '%s' AND b.TABLE_NAME = a.TABLE_NAME AND b.COLUMN_NAME = a.COLUMN_NAME", tableName) ;
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
+			JSONObject defaultField = new JSONObject();
+			defaultField.put("fieldName", "无标识列");
+			defaultField.put("fieldType", "无");
+			defaultField.put("comments", "选择无标识列,将全量同步");
+			fieldInfo.add(defaultField);
 			while (rs.next()) {
 				JSONObject field = new JSONObject();
 				field.put("fieldName", rs.getString(1));
@@ -156,19 +161,19 @@ public class TableConfigService {
 						count = rs.getInt(1);
 					}
 					DbUtil.closeRs(rs,stmt);
-					if(count == 0) {
-						szSql = String.format("delete from  SYNCHRON_CFG_TABLE  where TABLENAME =='%s' and TABLEID = %d",tableName,tableId);
-						stmt = dbConn.prepareStatement(szSql);
-						stmt.execute();	
-						DbUtil.closeST(stmt);
-						//同步删除目标数据库里的相应表的数据
-						dropDataFromTargetDb(tableName,tableId);
-						
-						szSql = String.format("insert into SYNCHRON_CFG_TABLE (TABLENAME,FIELD,TABLEID) values ('%s','%s',%d)", tableName,fieldName,tableId);
-						stmt = dbConn.prepareStatement(szSql);
-						stmt.execute();	
-						DbUtil.closeST(stmt);					
-					}	
+//					if(count == 0) {
+//						szSql = String.format("delete from  SYNCHRON_CFG_TABLE  where TABLENAME =='%s' and TABLEID = %d",tableName,tableId);
+//						stmt = dbConn.prepareStatement(szSql);
+//						stmt.execute();	
+//						DbUtil.closeST(stmt);
+//						//同步删除目标数据库里的相应表的数据
+//						dropDataFromTargetDb(tableName,tableId);
+//						
+//						szSql = String.format("insert into SYNCHRON_CFG_TABLE (TABLENAME,FIELD,TABLEID) values ('%s','%s',%d)", tableName,fieldName,tableId);
+//						stmt = dbConn.prepareStatement(szSql);
+//						stmt.execute();	
+//						DbUtil.closeST(stmt);					
+//					}	
 				}
 			}
 			DbUtil.closeRs(rs2,stmt2);

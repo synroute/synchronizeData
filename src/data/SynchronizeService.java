@@ -159,6 +159,12 @@ public class SynchronizeService {
 			//再次获取连接
 			dbConn = DbUtil.getConnection(targetUrl, targetUser, targetPwd);
 			dbConn.setAutoCommit(false);
+			if (fieldName.equals("无标识列")) {
+				String deleteSql  = String.format("delete from %s", tableName);
+				stmt = dbConn.prepareStatement(deleteSql);
+				stmt.execute();		
+				DbUtil.closeST(stmt);
+			}	
 			for (int i = 0; i < listData.size(); i++) {
 				String insertSql = insert;
 				String values = "";
@@ -265,53 +271,89 @@ public class SynchronizeService {
 		ResultSet rs = null;
 		String querySql = "";
 		String fieldType = "";
-		try {
-			//获取来源库DB连接
-			dbConn = DbUtil.getConnection(sourceUrl,sourceUser,sourcePwd);
-			szSql = String.format("SELECT COLUMN_NAME,DATA_TYPE FROM USER_TAB_COLUMNS WHERE TABLE_NAME = '%s'", tableName);
-			stmt = dbConn.prepareStatement(szSql);
-			rs = stmt.executeQuery();
-			querySql +="select  ";
-			while (rs.next()) {
-				if (rs.getString(2).equals("DATE")) {
-					querySql += "to_char(";
-					querySql += rs.getString(1);
-					querySql += ",'yyyy-mm-dd hh24:mi:ss')";
-				} else {
-					querySql += rs.getString(1);
+		if (fieldName.equals("无标识列")) {
+			try {
+				//获取来源库DB连接
+				dbConn = DbUtil.getConnection(sourceUrl,sourceUser,sourcePwd);
+				szSql = String.format("SELECT COLUMN_NAME,DATA_TYPE FROM USER_TAB_COLUMNS WHERE TABLE_NAME = '%s'", tableName);
+				stmt = dbConn.prepareStatement(szSql);
+				rs = stmt.executeQuery();
+				querySql +="select  ";
+				while (rs.next()) {
+					if (rs.getString(2).equals("DATE")) {
+						querySql += "to_char(";
+						querySql += rs.getString(1);
+						querySql += ",'yyyy-mm-dd hh24:mi:ss')";
+					} else {
+						querySql += rs.getString(1);
+					}
+					querySql +=",";
+					if (rs.getString(1).equals(fieldName)) {
+						fieldType = rs.getString(2);
+					}
+					Map<String , String> mapCol = new HashMap<>();
+					mapCol.put("colName", rs.getString(1));
+					mapCol.put("dataType", rs.getString(2));
+					listCol.add(mapCol);
 				}
-				querySql +=",";
-				if (rs.getString(1).equals(fieldName)) {
-					fieldType = rs.getString(2);
-				}
-				Map<String , String> mapCol = new HashMap<>();
-				mapCol.put("colName", rs.getString(1));
-				mapCol.put("dataType", rs.getString(2));
-				listCol.add(mapCol);
+				querySql = querySql.substring(0,querySql.length() - 1);
+				querySql +=" from ";
+				querySql += tableName;
+			} catch (Exception e) {
+				logger.error(String.format("queryDataFromSourceDb异常"+szSql));
+				e.printStackTrace();
+			} finally {
+				DbUtil.closeRs(rs, stmt);
 			}
-			querySql = querySql.substring(0,querySql.length() - 1);
-			querySql +=" from ";
-			querySql += tableName;
-			if (!identity.equals("")) {
-				querySql +=" where ";
-				if (fieldType.equals("DATE")) {
-					querySql += fieldName;
-					querySql += " > to_date('";
-					querySql += identity;
-					querySql += "','yyyy-mm-dd hh24:mi:ss')";
-				} else {
-					querySql += fieldName;
-					querySql += " > ";
-					querySql += identity;
-				}	
-			} 
-			querySql += " order by ";
-			querySql += fieldName;
-		} catch (Exception e) {
-			logger.error(String.format("queryDataFromSourceDb异常"+szSql));
-			e.printStackTrace();
-		} finally {
-			DbUtil.closeRs(rs, stmt);
+		} else {
+			try {
+				//获取来源库DB连接
+				dbConn = DbUtil.getConnection(sourceUrl,sourceUser,sourcePwd);
+				szSql = String.format("SELECT COLUMN_NAME,DATA_TYPE FROM USER_TAB_COLUMNS WHERE TABLE_NAME = '%s'", tableName);
+				stmt = dbConn.prepareStatement(szSql);
+				rs = stmt.executeQuery();
+				querySql +="select  ";
+				while (rs.next()) {
+					if (rs.getString(2).equals("DATE")) {
+						querySql += "to_char(";
+						querySql += rs.getString(1);
+						querySql += ",'yyyy-mm-dd hh24:mi:ss')";
+					} else {
+						querySql += rs.getString(1);
+					}
+					querySql +=",";
+					if (rs.getString(1).equals(fieldName)) {
+						fieldType = rs.getString(2);
+					}
+					Map<String , String> mapCol = new HashMap<>();
+					mapCol.put("colName", rs.getString(1));
+					mapCol.put("dataType", rs.getString(2));
+					listCol.add(mapCol);
+				}
+				querySql = querySql.substring(0,querySql.length() - 1);
+				querySql +=" from ";
+				querySql += tableName;
+				if (!identity.equals("")) {
+					querySql +=" where ";
+					if (fieldType.equals("DATE")) {
+						querySql += fieldName;
+						querySql += " > to_date('";
+						querySql += identity;
+						querySql += "','yyyy-mm-dd hh24:mi:ss')";
+					} else {
+						querySql += fieldName;
+						querySql += " > ";
+						querySql += identity;
+					}	
+				} 
+				querySql += " order by ";
+				querySql += fieldName;
+			} catch (Exception e) {
+				logger.error(String.format("queryDataFromSourceDb异常"+szSql));
+				e.printStackTrace();
+			} finally {
+				DbUtil.closeRs(rs, stmt);
+			}		
 		}	
 		try {
 			stmt = dbConn.prepareStatement(querySql);
@@ -325,8 +367,9 @@ public class SynchronizeService {
 					if (str == null) {
 						str = "";
 					}
-					String value = new String(str.getBytes("UTF-8"));
-					mapData.put(key, value);
+//					String value = new String(str.getBytes("UTF-8"));
+//					mapData.put(key, value);
+					mapData.put(key, str);
 				}
 //				for (Map<String, String> map : listCol) {
 //					String key = map.get("colName");
@@ -532,5 +575,55 @@ public class SynchronizeService {
 		}	
 		logger.info(String.format("重置同步数据标识成功"));
 		return;
+	}
+
+	public static void text() {	
+		Connection dbConn = null;
+		String szSql = "";
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		String targetUrl = "";
+		String targetUser = "";
+		String targetPwd = "";
+		try {
+			dbConn = DbUtil.getConnection();
+			szSql = String.format("select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST from SYNCHRON_CFG_DBCONN where type =1 ");
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				if (rs.getString(1).equals("oracle")) {
+					targetUrl += "jdbc:oracle:thin:@";
+					targetUrl += rs.getString(2);
+					targetUrl += ":";
+					targetUrl += rs.getString(3);
+					targetUrl += ":";
+					targetUrl += rs.getString(4);
+				}
+				targetUser = rs.getString(5);
+				targetPwd = rs.getString(6);	
+			}
+		} catch (Exception e) {
+			logger.error(String.format("insertDataToTargetDb异常"+szSql));
+			e.printStackTrace();
+		} finally {
+			DbUtil.closeAll(rs, stmt, dbConn);
+		}	
+		try {
+			dbConn = DbUtil.getConnection(targetUrl, targetUser, targetPwd);	
+			szSql = String.format("SELECT AGTSTATE,STARTQUA FROM APP_INF_AGTSTATELIST");
+			stmt = dbConn.prepareStatement(szSql);
+			rs = stmt.executeQuery();
+			while (rs.next()) {
+				String AGESTATE = rs.getString(1);
+				String STATEQUA = rs.getString(2);
+				System.out.println(AGESTATE);
+				System.out.println(STATEQUA);
+			}	
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			DbUtil.closeAll(rs, stmt, dbConn);
+		}	
+		
 	}
 }

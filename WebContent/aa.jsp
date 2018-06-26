@@ -150,7 +150,7 @@
 					    <div data-options="region:'west'," style="width:60%;height:100%;position:ralative;">
 					    	<div style="width:100%;position:absolute;top:0;bottom:0;">
 					    		<table id="sourceListInfo" class="easyui-datagrid" style="width:100%;height:100%;"   
-			        					data-options="fitColumns:true,singleSelect:false">  
+			        					data-options="fitColumns:true,singleSelect:false,selectOnCheck:true">  
 								    <thead>   
 								        <tr>   
 								           <!--  <th data-options="field:'userId',width:100,">坐席ID</th>  -->
