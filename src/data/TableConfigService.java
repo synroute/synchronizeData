@@ -4,8 +4,19 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.jar.Attributes.Name;
+
+import javax.enterprise.inject.New;
+import javax.validation.TraversableResolver;
 
 import org.apache.log4j.Logger;
+import org.omg.CosNaming.NamingContextExtPackage.StringNameHelper;
+import org.springframework.asm.Handle;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -139,6 +150,7 @@ public class TableConfigService {
 		String szSql = "";
 		ResultSet rs = null;
 		int tableId = 0;
+		List<Map<String, String>> tableNames = new ArrayList<Map<String, String>>();
 		try {
 			dbConn = DbUtil.getConnection();
 			dbConn.setAutoCommit(false);	
@@ -153,6 +165,9 @@ public class TableConfigService {
 					JsonObject jsonObject = (JsonObject) jsonArray.get(i);
 					String tableName  = jsonObject.get("tableName").getAsString();
 					String fieldName  = jsonObject.get("fieldName").getAsString();
+					Map<String, String> mapTableName = new HashMap<>();
+					mapTableName.put("tableName", tableName);
+					tableNames.add(mapTableName);
 					int count = 0;
 					szSql = String.format("SELECT count(*) FROM SYNCHRON_CFG_TABLE  where TABLENAME='%s' and FIELD ='%s' and TABLEID = %d ", tableName,fieldName,tableId) ;
 					stmt = dbConn.prepareStatement(szSql);
@@ -177,6 +192,22 @@ public class TableConfigService {
 				}
 			}
 			DbUtil.closeRs(rs2,stmt2);
+			
+			String deletesql = "";
+			deletesql += "delete from SYNCHRON_CFG_TABLE where TABLENAME not in (";	
+			for (int ii = 0; ii < tableNames.size(); ii++) {
+				String tableName = tableNames.get(ii).get("tableName");
+				deletesql +="'";
+				deletesql += tableName;
+				deletesql +="'";
+				deletesql += ",";
+			}
+			deletesql = deletesql.substring(0,deletesql.length() - 1);
+			deletesql+=")";
+			stmt = dbConn.prepareStatement(deletesql);
+			stmt.execute();	
+			DbUtil.closeST(stmt);
+			
 //			DbUtil.closeAll(rs2,stmt2,dbConn);
 			dbConn.commit();				
 		} catch (SQLException e) {
