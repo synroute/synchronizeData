@@ -161,19 +161,19 @@ public class TableConfigService {
 						count = rs.getInt(1);
 					}
 					DbUtil.closeRs(rs,stmt);
-//					if(count == 0) {
-//						szSql = String.format("delete from  SYNCHRON_CFG_TABLE  where TABLENAME =='%s' and TABLEID = %d",tableName,tableId);
-//						stmt = dbConn.prepareStatement(szSql);
-//						stmt.execute();	
-//						DbUtil.closeST(stmt);
-//						//同步删除目标数据库里的相应表的数据
-//						dropDataFromTargetDb(tableName,tableId);
-//						
-//						szSql = String.format("insert into SYNCHRON_CFG_TABLE (TABLENAME,FIELD,TABLEID) values ('%s','%s',%d)", tableName,fieldName,tableId);
-//						stmt = dbConn.prepareStatement(szSql);
-//						stmt.execute();	
-//						DbUtil.closeST(stmt);					
-//					}	
+					if(count == 0) {
+						szSql = String.format("delete from  SYNCHRON_CFG_TABLE  where TABLENAME ='%s' and TABLEID = %d",tableName,tableId);
+						stmt = dbConn.prepareStatement(szSql);
+						stmt.execute();	
+						DbUtil.closeST(stmt);
+						//同步删除目标数据库里的相应表的数据
+						dropDataFromTargetDb(tableName,tableId);
+						
+						szSql = String.format("insert into SYNCHRON_CFG_TABLE (TABLENAME,FIELD,TABLEID) values ('%s','%s',%d)", tableName,fieldName,tableId);
+						stmt = dbConn.prepareStatement(szSql);
+						stmt.execute();	
+						DbUtil.closeST(stmt);					
+					}	
 				}
 			}
 			DbUtil.closeRs(rs2,stmt2);

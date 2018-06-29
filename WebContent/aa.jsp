@@ -391,18 +391,18 @@
 	//  表数据  -- 保存
 	function tableListSave(){
 		var listArr = [];
-		var rows = $('#sourceListInfo').datagrid('getSelected');
-		listArr.push({
+		var rows = $('#sourceListInfo').datagrid('getSelections');
+		/* listArr.push({
 			tableName: rows.tableName,
 			fieldName: rows.fieldName
-		})
+		}) */
 		//console.log(listArr);
 		$.ajax({
 			url: 'TableConfigController',
 			type: 'post',
 			data: {
 				action:"saveTableAndField",
-				data: JSON.stringify(listArr)
+				data: JSON.stringify(rows)
 			},
 			dataType: 'text',
 			//async: false,
