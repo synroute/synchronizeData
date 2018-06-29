@@ -155,9 +155,9 @@
 								        <tr>   
 								           <!--  <th data-options="field:'userId',width:100,">坐席ID</th>  -->
 								            <th data-options="field:'ck',checkbox:true">  
-								            <th data-options="field:'tableName',width:100,">表名称</th>
-								            <th data-options="field:'fieldName',width:100,">已选标识列</th> 
-			              					<th data-options="field:'_operate',width:80,align:'center',formatter:formatOper1">状态</th> 
+								            <th data-options="field:'tableName',width:160,">表名称</th>
+								            <th data-options="field:'fieldName',width:80,">已选标识列</th> 
+			              					<th data-options="field:'_operate',width:40,align:'center',formatter:formatOper1">状态</th> 
 								        </tr>   
 								    </thead>   
 								</table> 
