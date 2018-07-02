@@ -269,7 +269,6 @@
 				action: "getSourceDbConfig"
 			},
 			dataType: 'json',
-			//async: false,
 			success: function(res){
 				//console.log(res);
 				var data = res[0];
@@ -331,7 +330,7 @@
 				action:"testSourceDbConfig"
 			},
 			dataType: 'text',
-			async: false,
+			//async: false,
 			success: function(res){
 				//console.log(res);
 				if(res != "获取来源数据库连接成功"){
@@ -355,7 +354,7 @@
 				action:"getAllTableFromSource"
 			},
 			dataType: 'json',
-			async: false,
+			//async: false,
 			success: function(res){
 				//console.log(res);
 				data = res;
@@ -405,7 +404,6 @@
 				data: JSON.stringify(rows)
 			},
 			dataType: 'text',
-			//async: false,
 			success:function(res){
 				getCurrentTime (res);
 			}
@@ -421,9 +419,9 @@
 				action:"getTableAndField"
 			},
 			dataType: 'json',
-			async: false,
+			//async: false,
 			success:function(res){
-				console.log(res);
+				//console.log(res);
 				list = res;
 				//console.log(data);
 				//console.log(list);
@@ -553,7 +551,7 @@
 	
  function formatOper1(val,row,index){
 	 var sourceListInfo = $("#sourceListInfo").datagrid("getChecked");
-	 console.log(dataState);
+	 //console.log(dataState);
 	 if(dataState == 1){
 		 for(var i=0; i<data.length; i++){
 			 for(var j=0; j<sourceListInfo.length; j++){
@@ -651,7 +649,7 @@
 				url:'TargetDbConfig',
 				type:'post',
 				data:{
-					action:'addTargetDbConfig',
+					action:'modifyTargetDbConfig',
 					tableId:tableId,
 					dbType:targetDatabaseType,
 					dbIp:targetIP,
@@ -851,7 +849,6 @@
 					action:"allTablePass"
 				},
 				dataType: 'text',
-				//async: false,
 				success:function(res){
 					dataState = res;
 					//console.log(res);
