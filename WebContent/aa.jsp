@@ -475,7 +475,7 @@
 	function addBtn(){
 		cancel();
 		$("#targetDatabase,#sourceAddBtn,#cancel").show();
-		$("#delectBtn,#targetSave").hide();
+		$("#delectBtn,#targetSave,#targetTest").hide();
 	}
 	//目标数据库 -- 新增 保存
 	function sourceAddBtn(){
@@ -505,6 +505,8 @@
 				success:function(res){
 					//console.log(res);
 					getCurrentTime (res);
+					getTargetList();
+					cancel();
 				}
 			})
 		}
@@ -592,8 +594,8 @@
 	function delectBtn(){
 		var row = $('#targetList').datagrid('getSelected');
 		 var rowIndex=$('#targetList').datagrid('getRowIndex',$('#targetList').datagrid('getSelected')); 
-		//console.log(row);
-		
+		console.log(row);
+		console.log(rowIndex);
 		if(row.length == 0){
 			$.messager.alert("提示","请选择你要删除的数据库");
 		}else{
@@ -603,7 +605,7 @@
 	            			url: 'TargetDbConfig',
 	            			type: 'post',
 	            			data: {
-	            				action:"dropTargetDbConfig",
+	            				action: "dropTargetDbConfig",
 	            				tableId: row.tableId
 	            			},
 	            			dataType: 'text',
@@ -611,11 +613,12 @@
 	            				//console.log(res);
 	            				$('#targetList').datagrid("deleteRow",rowIndex);
 	            				getCurrentTime (res);
+	            				getTargetList();
 	            			}
 	            		})
 	                }  
 	            })
-		}
+		} 
 	}
 	// 目标数据库 -- 回显
 	function targetList(index,row){
@@ -663,6 +666,7 @@
 					//console.log(res);
 					tableId = "";
 					getCurrentTime (res);
+					getTargetList();
 				}
 			})
 		}
