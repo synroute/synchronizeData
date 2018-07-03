@@ -593,9 +593,10 @@
 	//删除 
 	function delectBtn(){
 		var row = $('#targetList').datagrid('getSelected');
-		 var rowIndex=$('#targetList').datagrid('getRowIndex',$('#targetList').datagrid('getSelected')); 
-		console.log(row);
-		console.log(rowIndex);
+		var rowIndex=$('#targetList').datagrid('getRowIndex',$('#targetList').datagrid('getSelected')); 
+		//console.log(row.tableId);
+		//console.log(tableId);
+		//console.log(rowIndex);
 		if(row.length == 0){
 			$.messager.alert("提示","请选择你要删除的数据库");
 		}else{
@@ -605,8 +606,8 @@
 	            			url: 'TargetDbConfig',
 	            			type: 'post',
 	            			data: {
-	            				action: "dropTargetDbConfig",
-	            				tableId: row.tableId
+	            				action:'dropTargetDbConfig',
+	        					tableId:tableId
 	            			},
 	            			dataType: 'text',
 	            			success: function(res){
