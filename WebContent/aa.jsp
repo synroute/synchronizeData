@@ -40,7 +40,7 @@
 		</div>
 	</main>
 	<div class="easyui-layout" style="width:100%;height:100%">
-	  	<div data-options="region:'north'" style="width:100%;height:40%;">
+	  	<div data-options="region:'north'" style="width:100%;height:39%;margin-bottom:5px;">
 	  		<div class="easyui-layout" style="width:99.5%;height:100%;">   
 			    <div data-options="region:'center',title:'来源数据库'" style="width:30%;height:100%;">
 					<div id="sourceDatabase" style="margin:0 auto;width:100%;">
@@ -72,7 +72,7 @@
 			    		</div>
 					</div>
 			    </div> 
-			    <div data-options="region:'east',title:'目标数据库'" style="width:70%;height:100%;margin:0;">
+			    <div data-options="region:'east',title:'目标数据库'" style="width:69%;height:100%;margin:0;margin-left:5px;">
 			    	<div class="easyui-layout" style="width:99.5%;height:100%;">  
 					    <div data-options="region:'west'" style="width:60%;height:100%;position:relative;">
 					    	<div style="height:40px;line-height:35px;text-align:right;">
@@ -139,7 +139,7 @@
 	  	</div> 
 	    <div data-options="region:'center'" style="width:98%;height:50%;">
 	    	<div class="easyui-layout" style="width:100%;height:100%;"> 
-			    <div data-options="region:'center'" style="width:50%;height:100%;">
+			    <div data-options="region:'center'" style="width:49%;height:100%;margin-right:5px;">
 			    	<div style="width:100%;height:40px;line-height:35px;text-align:right;">
 			    		<span id="info"></span>
 			    		<a id="tableListSave" href="javascript:void(0)" style="margin-right:5px;" class="easyui-linkbutton" data-options="" onclick="tableListSave()">保存</a>
@@ -147,7 +147,7 @@
 			    	</div>
 			    	<div id="list" style="width:100%;position:absolute;top:40px;bottom:0;">
 			    	<div id="cc" class="easyui-layout" style="width:100%;height:100%;">   
-					    <div data-options="region:'west'," style="width:60%;height:100%;position:ralative;">
+					    <div data-options="region:'west'," style="width:59%;height:100%;position:ralative;margin-right:5px;">
 					    	<div style="width:100%;position:absolute;top:0;bottom:0;">
 					    		<table id="sourceListInfo" class="easyui-datagrid" style="width:100%;height:100%;"   
 			        					data-options="fitColumns:true,singleSelect:false,selectOnCheck:true">  
@@ -242,6 +242,7 @@
 	var bool = true,rowIndex="",tableName = "",fileName="",tableId = "",boolType = false,state = "",data="",list="";
     var dataState = "";
 	$(function(){
+		var count = 0;
 		$("#sourceTest,#targetTest,#list,#detection,#startSync,#endSync,#tableListSave,#targetDatabase,#targetSave,#sourceAddBtn,#cancel").hide();
 		$("#targetList").datagrid("hideColumn","tableId");
 		//$("#sourceListInfo").datagrid("hideColumn","_operate");
@@ -253,10 +254,15 @@
 		}
 		getSourceInfo();
 		getTargetList();
-		getSynchronousState();
 		watchAll();
-		return;
-		
+		var timer = setInterval(function(){
+			if(count>=1){
+				clearInterval(timer);
+			}else{
+				count++;
+				getSynchronousState();
+			}
+		},1000); 
 		
 	})
 	
@@ -334,6 +340,7 @@
 			success: function(res){
 				//console.log(res);
 				if(res != "获取来源数据库连接成功"){
+					//console.log(bool);
 					bool = false;
 				}
 				$("#list,#detection,#tableListSave").show();
@@ -379,6 +386,16 @@
 								$("#listInfo").datagrid("loadData",res);
 							}
 						})
+					},
+					onUnselect:function(index, row){
+						$('#sourceListInfo').datagrid('updateRow',{
+							index: index,
+							row: {
+								fieldName: ""
+							}
+						});
+
+
 					}
 				})
 			}
@@ -626,14 +643,13 @@
 		//console.log(row);
 		cancel();
 		tableId = row.tableId;
-		$("#targetDatabase,#targetSave").show();
+		$("#targetDatabase,#targetSave,#targetTest").show();
 		$("#targetDatabaseType").combobox('setValue', row.dbType);
 		$("#targetIP").textbox("setValue", row.dbIp);
 		$("#targetPort").textbox("setValue", row.dbPort);
 		$("#targetUser").textbox("setValue", row.dbUser);
 		$("#targetPassword").textbox("setValue", row.dbPassword);
 		$("#targetSID").textbox("setValue", row.dbSid);
-		$("#targetTest").hide();
 		$("#targetResult").html("");
 	}
 	//目标数据库 -- 保存
