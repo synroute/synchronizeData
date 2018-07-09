@@ -398,6 +398,7 @@
 
 					}
 				})
+				getUpdata(data);
 			}
 		})
 	}
@@ -428,7 +429,7 @@
 	}
 	
 	//获取需要更新的表结构
-	function getUpdata(){
+	function getUpdata(data2){
 		$.ajax({
 			url: 'TableConfigController',
 			type: 'post',
@@ -443,9 +444,9 @@
 				//console.log(data);
 				//console.log(list);
 				//$("#sourceListInfo").datagrid("loadData",res);
-				for(var j=0; j<data.length;j++){
+				for(var j=0; j<data2.length;j++){
 					for(var i=0; i<res.length; i++){
-						if(data[j].tableName == res[i].tableName){
+						if(data2[j].tableName == res[i].tableName){
 							 $("#sourceListInfo").datagrid("selectRow",j);
 							 $('#sourceListInfo').datagrid('updateRow',{
 								 index: j,
