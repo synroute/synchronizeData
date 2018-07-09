@@ -321,15 +321,15 @@ public class TableConfigService {
 		String szSql = "";
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		String url = "";
-		String user = "";
-		String pwd = "";
 		try {
 			dbConn = DbUtil.getConnection();
 			szSql = "select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST,ID from SYNCHRON_CFG_DBCONN where type =1";
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while (rs.next()) {
+				String url = "";
+				String user = "";
+				String pwd = "";
 				if (rs.getString(1).equals("oracle")) {
 					url += "jdbc:oracle:thin:@";
 					url += rs.getString(2);
