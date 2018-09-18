@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -85,12 +86,151 @@ public class SynchronizeService {
 			
 			//根据表名，字段名，记录标识从来源表中拿出需更新的数据，转码utf-8
 			List<Map<String, Object>> listData = new ArrayList<Map<String, Object>>();
-			queryDataFromSourceDb(tableName,fieldName,identity,mapDbInfo,listData);
+			String sourceType = mapDbInfo.get("sourceType").toString();
+			if (sourceType.equals("oracle")) {
+				queryDataFromSourceDbOracle(tableName,fieldName,identity,mapDbInfo,listData);			
+			} else if (sourceType.equals("sqlServer")) {
+				queryDataFromSourceDbSqlServer(tableName,fieldName,identity,mapDbInfo,listData);			
+			}
 			
 			//将获取到的数据同步到目标表中，插入失败事务回滚，插入成功更新记录标识
 			insertDataToTargetDb(tableName,fieldName,mapDbInfo,listData,dbId);
 			
 		}
+	}
+
+	private static void queryDataFromSourceDbSqlServer(String tableName, String fieldName, String identity,
+			Map<String, Object> mapDbInfo, List<Map<String, Object>> listData) {
+		String sourceUrl = mapDbInfo.get("sourceUrl").toString();
+		String sourceUser = mapDbInfo.get("sourceUser").toString();
+		String sourcePwd = mapDbInfo.get("sourcePwd").toString();
+		//表列名 list
+		List<Map<String, String>> listCol = new ArrayList<Map<String, String>>();
+		Connection dbConn = null;
+		String szSql = "";
+		Statement stmt = null;
+		ResultSet rs = null;
+		String querySql = "";
+		String fieldType = "";
+		if (fieldName.equals("无标识列")) {
+			try {
+				//获取来源库DB连接
+				dbConn = DbUtil.getSqlserverConnection(sourceUrl,sourceUser,sourcePwd);
+				szSql = String.format("select column_name,data_type from information_schema.columns where table_name = '%s'", tableName);
+				stmt = dbConn.createStatement();
+				rs = stmt.executeQuery(szSql);
+				querySql +="select  ";
+				while (rs.next()) {
+					if (rs.getString(2).equals("date")||rs.getString(2).equals("datetime")) {
+						querySql += "CONVERT(varchar, ";
+						querySql += rs.getString(1);
+						querySql += ", 120 ) ";
+					} else {
+						querySql += rs.getString(1);
+					}
+					querySql +=",";
+					if (rs.getString(1).equals(fieldName)) {
+						fieldType = rs.getString(2);
+					}
+					Map<String , String> mapCol = new HashMap<>();
+					mapCol.put("colName", rs.getString(1).toUpperCase());
+					mapCol.put("dataType", rs.getString(2));
+					listCol.add(mapCol);
+				}
+				querySql = querySql.substring(0,querySql.length() - 1);
+				querySql +=" from ";
+				querySql += tableName;
+			} catch (Exception e) {
+				logger.error(String.format("queryDataFromSourceDb异常"+szSql));
+				e.printStackTrace();
+			} finally {
+				DbUtil.closeRs(rs, stmt);
+			}
+		} else {
+			try {
+				//获取来源库DB连接
+				dbConn = DbUtil.getSqlserverConnection(sourceUrl,sourceUser,sourcePwd);
+				szSql = String.format("select column_name,data_type from information_schema.columns where table_name = '%s'", tableName);
+				stmt = dbConn.createStatement();
+				rs = stmt.executeQuery(szSql);
+				querySql +="select  ";
+				while (rs.next()) {
+					if (rs.getString(2).equals("date")||rs.getString(2).equals("datetime")) {
+						querySql += "CONVERT(varchar, ";
+						querySql += rs.getString(1);
+						querySql += ", 120 ) ";
+					} else {
+						querySql += rs.getString(1);
+					}
+					querySql +=",";
+					if (rs.getString(1).equals(fieldName)) {
+						fieldType = rs.getString(2);
+					}
+					Map<String , String> mapCol = new HashMap<>();
+					mapCol.put("colName", rs.getString(1).toUpperCase());
+					mapCol.put("dataType", rs.getString(2));
+					listCol.add(mapCol);
+				}
+				querySql = querySql.substring(0,querySql.length() - 1);
+				querySql +=" from ";
+				querySql += tableName;
+				if (!identity.equals("")) {
+					querySql +=" where ";
+					if (fieldType.equals("datetime")||fieldType.equals("date")) {
+						querySql += fieldName;
+						querySql += " >  CONVERT(datetime,'";
+						querySql += identity;
+						querySql += "',120) ";
+					} else {
+						querySql += fieldName;
+						querySql += " > ";
+						querySql += identity;
+					}	
+				} 
+				querySql += " order by ";
+				querySql += fieldName;
+			} catch (Exception e) {
+				logger.error(String.format("queryDataFromSourceDb异常"+szSql));
+				e.printStackTrace();
+			} finally {
+				DbUtil.closeRs(rs, stmt);
+			}		
+		}	
+		try {
+			stmt = dbConn.createStatement();
+			rs = stmt.executeQuery(querySql);
+			int num = 0;
+			while (rs.next()) {
+				num++;
+				if (num>100000) {
+					break;
+				}
+				Map<String , Object> mapData = new HashMap<>();
+				for (int i = 0; i < listCol.size(); i++) {
+					Map<String, String> map = listCol.get(i);
+					String key = map.get("colName");
+					String str = rs.getString(i+1);
+					if (str == null) {
+						str = "";
+					}
+//					String value = new String(str.getBytes("UTF-8"));
+//					mapData.put(key, value);
+					mapData.put(key, str);
+				}
+//				for (Map<String, String> map : listCol) {
+//					String key = map.get("colName");
+//					String str = rs.getString(key);
+//					String value = new String(str.getBytes("UTF-8"));
+//					mapData.put(key, value);
+//				}
+				listData.add(mapData);
+			}
+		} catch (Exception e) {
+			logger.error(String.format("queryDataFromSourceDb异常"+querySql));
+			e.printStackTrace();
+		} finally {
+			DbUtil.closeAll(rs, stmt, dbConn);
+		}	
 	}
 
 	//将获取到的数据同步到目标表中，插入失败事务回滚，插入成功更新记录标识
@@ -102,7 +242,7 @@ public class SynchronizeService {
 		String insert = "";
 		String szSql = "";
 		String identity = "";
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		ResultSet rs = null;
 		String targetUrl = "";
 		String targetUser = "";
@@ -110,8 +250,8 @@ public class SynchronizeService {
 		try {
 			dbConn = DbUtil.getConnection();
 			szSql = String.format("select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST from SYNCHRON_CFG_DBCONN where type =1 and ID = '%s'", dbId);
-			stmt = dbConn.prepareStatement(szSql);
-			rs = stmt.executeQuery();
+			stmt = dbConn.createStatement();
+			rs = stmt.executeQuery(szSql);
 			if (rs.next()) {
 				if (rs.getString(1).equals("oracle")) {
 					targetUrl += "jdbc:oracle:thin:@";
@@ -132,9 +272,10 @@ public class SynchronizeService {
 		}	
 		try {
 			dbConn = DbUtil.getConnection(targetUrl, targetUser, targetPwd);	
-			szSql = String.format("SELECT COLUMN_NAME,DATA_TYPE FROM USER_TAB_COLUMNS WHERE TABLE_NAME = '%s'", tableName);
-			stmt = dbConn.prepareStatement(szSql);
-			rs = stmt.executeQuery();
+			String tableName2 = tableName.toUpperCase();
+			szSql = String.format("SELECT COLUMN_NAME,DATA_TYPE FROM USER_TAB_COLUMNS WHERE TABLE_NAME = '%s'", tableName2);
+			stmt = dbConn.createStatement();
+			rs = stmt.executeQuery(szSql);
 			insert +="insert into ";
 			insert +=tableName;
 			insert +=" (";
@@ -155,14 +296,15 @@ public class SynchronizeService {
 		} finally {
 			DbUtil.closeAll(rs, stmt, dbConn);
 		}	
+		String sqlStr = "";
 		try {
 			//再次获取连接
 			dbConn = DbUtil.getConnection(targetUrl, targetUser, targetPwd);
 			dbConn.setAutoCommit(false);
 			if (fieldName.equals("无标识列")) {
 				String deleteSql  = String.format("delete from %s", tableName);
-				stmt = dbConn.prepareStatement(deleteSql);
-				stmt.execute();		
+				stmt = dbConn.createStatement();
+				stmt.execute(deleteSql);		
 				DbUtil.closeST(stmt);
 			}	
 			for (int i = 0; i < listData.size(); i++) {
@@ -182,7 +324,7 @@ public class SynchronizeService {
 						values +="' ";
 					}
 					values +=",";
-					if (colName.equals(fieldName)) {
+					if (colName.toUpperCase().equals(fieldName.toUpperCase())) {
 						identity = mapData.get(colName).toString();
 					}
 				}
@@ -190,8 +332,9 @@ public class SynchronizeService {
 				insertSql += " values (";
 				insertSql += values;
 				insertSql +=")";
-				stmt = dbConn.prepareStatement(insertSql);
-				stmt.execute();		
+				stmt = dbConn.createStatement();
+				sqlStr = insertSql;
+				stmt.execute(insertSql);		
 				DbUtil.closeST(stmt);
 			}
 			dbConn.commit();
@@ -199,6 +342,8 @@ public class SynchronizeService {
 			updateIdentity(tableName,fieldName,identity,dbId);
 			
 		} catch (Exception e) {
+			System.out.println(sqlStr);
+			logger.error(String.format("insertDataToTargetDb异常:"+sqlStr));
 			try {
 				dbConn.rollback();
 			} catch (SQLException e1) {
@@ -221,18 +366,18 @@ public class SynchronizeService {
 	@SuppressWarnings("resource")
 	private static void updateIdentity(String tableName, String fieldName, String identity, String dbId) throws Exception {
 		Connection dbConn = null;
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		String szSql = "";
 		try {
 			dbConn = DbUtil.getConnection();
 			dbConn.setAutoCommit(false);
 			if (!identity.equals("")) {
 				szSql = String.format("delete from SYNCHRON_CFG_TABLE where TABLENAME ='%s' and FIELD ='%s' and TABLEID = '%s' ", tableName,fieldName,dbId);
-				stmt = dbConn.prepareStatement(szSql);
-				stmt.execute();	
+				stmt = dbConn.createStatement();
+				stmt.execute(szSql);	
 				szSql = String.format("insert into SYNCHRON_CFG_TABLE (TABLENAME,FIELD,IDENTIFY,TABLEID) values ('%s','%s','%s','%s')", tableName,fieldName,identity,dbId);
-				stmt = dbConn.prepareStatement(szSql);
-				stmt.execute();	
+				stmt = dbConn.createStatement();
+				stmt.execute(szSql);	
 				dbConn.commit();				
 			}
 			//select TABLENAME,FIELD,IDENTIFY from SYNCHRON_CFG_TABLE
@@ -259,7 +404,7 @@ public class SynchronizeService {
 	}
 
 	//根据表名，字段名，记录标识拿出需更新的数据，转码utf-8
-	private static void queryDataFromSourceDb(String tableName, String fieldName, String identity, Map<String, Object> mapDbInfo, List<Map<String, Object>> listData) {
+	private static void queryDataFromSourceDbOracle(String tableName, String fieldName, String identity, Map<String, Object> mapDbInfo, List<Map<String, Object>> listData) {
 		String sourceUrl = mapDbInfo.get("sourceUrl").toString();
 		String sourceUser = mapDbInfo.get("sourceUser").toString();
 		String sourcePwd = mapDbInfo.get("sourcePwd").toString();
@@ -267,7 +412,7 @@ public class SynchronizeService {
 		List<Map<String, String>> listCol = new ArrayList<Map<String, String>>();
 		Connection dbConn = null;
 		String szSql = "";
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		ResultSet rs = null;
 		String querySql = "";
 		String fieldType = "";
@@ -276,8 +421,8 @@ public class SynchronizeService {
 				//获取来源库DB连接
 				dbConn = DbUtil.getConnection(sourceUrl,sourceUser,sourcePwd);
 				szSql = String.format("SELECT COLUMN_NAME,DATA_TYPE FROM USER_TAB_COLUMNS WHERE TABLE_NAME = '%s'", tableName);
-				stmt = dbConn.prepareStatement(szSql);
-				rs = stmt.executeQuery();
+				stmt = dbConn.createStatement();
+				rs = stmt.executeQuery(szSql);
 				querySql +="select  ";
 				while (rs.next()) {
 					if (rs.getString(2).equals("DATE")) {
@@ -310,8 +455,8 @@ public class SynchronizeService {
 				//获取来源库DB连接
 				dbConn = DbUtil.getConnection(sourceUrl,sourceUser,sourcePwd);
 				szSql = String.format("SELECT COLUMN_NAME,DATA_TYPE FROM USER_TAB_COLUMNS WHERE TABLE_NAME = '%s'", tableName);
-				stmt = dbConn.prepareStatement(szSql);
-				rs = stmt.executeQuery();
+				stmt = dbConn.createStatement();
+				rs = stmt.executeQuery(szSql);
 				querySql +="select  ";
 				while (rs.next()) {
 					if (rs.getString(2).equals("DATE")) {
@@ -356,8 +501,8 @@ public class SynchronizeService {
 			}		
 		}	
 		try {
-			stmt = dbConn.prepareStatement(querySql);
-			rs = stmt.executeQuery();
+			stmt = dbConn.createStatement();
+			rs = stmt.executeQuery(querySql);
 			while (rs.next()) {
 				Map<String , Object> mapData = new HashMap<>();
 				for (int i = 0; i < listCol.size(); i++) {
@@ -444,10 +589,18 @@ public class SynchronizeService {
 					url += rs.getString(3);
 					url += ":";
 					url += rs.getString(4);
+				} else if (rs.getString(1).equals("sqlServer")) {
+					url += "jdbc:jtds:sqlserver://";
+					url += rs.getString(2);
+					url += ":";
+					url += rs.getString(3);
+					url += ";DatabaseName=";
+					url += rs.getString(4);
 				}
 				int type = rs.getInt(7);
 				if (type == 0) {
 					mapDbInfo.put("sourceUrl", url);
+					mapDbInfo.put("sourceType", rs.getString(1));
 					mapDbInfo.put("sourceUser", rs.getString(5));
 					mapDbInfo.put("sourcePwd", rs.getString(6));
 				} else if (type == 1) {
@@ -511,7 +664,7 @@ public class SynchronizeService {
 	private static void dropTargetData(String tableName, int dbId) {	
 		Connection dbConn = null;
 		String szSql = "";
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		ResultSet rs = null;
 		String targetUrl = "";
 		String targetUser = "";
@@ -519,8 +672,8 @@ public class SynchronizeService {
 		try {
 			dbConn = DbUtil.getConnection();
 			szSql = String.format("select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD from SYNCHRON_CFG_DBCONN where type =1 and ID = '%s'", dbId);
-			stmt = dbConn.prepareStatement(szSql);
-			rs = stmt.executeQuery();
+			stmt = dbConn.createStatement();
+			rs = stmt.executeQuery(szSql);
 			if (rs.next()) {
 				if (rs.getString(1).equals("oracle")) {
 					targetUrl += "jdbc:oracle:thin:@";
@@ -542,8 +695,8 @@ public class SynchronizeService {
 		try {
 			dbConn = DbUtil.getConnection(targetUrl, targetUser, targetPwd);	
 			szSql = String.format("delete from %s", tableName);
-			stmt = dbConn.prepareStatement(szSql);
-			stmt.execute();		
+			stmt = dbConn.createStatement();
+			stmt.execute(szSql);		
 		} catch (Exception e) {
 			logger.error(String.format("dropTargetData异常"+e.toString()));
 			e.printStackTrace();
@@ -555,13 +708,13 @@ public class SynchronizeService {
 	//重置同步数据标识
 	private static void cleanConfigInfo() {
 		Connection dbConn = null;
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		String szSql = "";
 		try {
 			dbConn = DbUtil.getConnection();
 			szSql = String.format("update SYNCHRON_CFG_TABLE  set IDENTIFY='%s' ","");
-			stmt = dbConn.prepareStatement(szSql);
-			stmt.execute();	
+			stmt = dbConn.createStatement();
+			stmt.execute(szSql);	
 		} catch (SQLException e) {
 			logger.error(String.format("cleanConfigInfo异常"+e.toString()));
 			e.printStackTrace();

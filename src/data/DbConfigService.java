@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import org.apache.log4j.Logger;
 
@@ -20,18 +21,18 @@ public class DbConfigService {
 	public static boolean saveSourceDbConfig(String dbType, String dbIp, String dbPort, String dbSid, String dbUser,
 			String dbPassword) {
 		Connection dbConn = null;
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		String szSql = "";
 		try {
 			dbConn = DbUtil.getConnection();
 			dbConn.setAutoCommit(false);
 			szSql = String.format("delete from SYNCHRON_CFG_DBCONN where type = 0 ");
-			stmt = dbConn.prepareStatement(szSql);
-			stmt.execute();	
+			stmt = dbConn.createStatement();
+			stmt.execute(szSql);	
 			DbUtil.closeST(stmt);
 			szSql = String.format("insert into SYNCHRON_CFG_DBCONN (DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST,ID) values ('%s','%s','%s','%s','%s','%s',0,0,S_SYNCHRON_CFG_DBCONN.nextval)", dbType,dbIp,dbPort,dbSid,dbUser,dbPassword);
-			stmt = dbConn.prepareStatement(szSql);
-			stmt.execute();	
+			stmt = dbConn.createStatement();
+			stmt.execute(szSql);	
 			DbUtil.closeST(stmt);
 			dbConn.commit();				
 		} catch (SQLException e) {
@@ -96,6 +97,7 @@ public class DbConfigService {
 		return jsonArray;
 	}
 
+	@SuppressWarnings("resource")
 	public static boolean testSourceDbConfig() {
 		Connection dbConn = null;
 		String szSql = "";
@@ -104,7 +106,9 @@ public class DbConfigService {
 		String url = "";
 		String sourceUser = "";
 		String sourcePwd = "";
+		String sourceType = "";
 		try {
+//			dbConn = DbUtil.getSqlserverConnection("jdbc:jtds:sqlserver://192.168.0.195:1433;DatabaseName=a","sa","pass");
 			dbConn = DbUtil.getConnection();
 			szSql = "select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST from SYNCHRON_CFG_DBCONN where type =0";
 			stmt = dbConn.prepareStatement(szSql);
@@ -117,6 +121,15 @@ public class DbConfigService {
 					url += rs.getString(3);
 					url += ":";
 					url += rs.getString(4);
+					sourceType = "oracle";
+				} else if (rs.getString(1).equals("sqlServer")) {
+					url += "jdbc:jtds:sqlserver://";
+					url += rs.getString(2);
+					url += ":";
+					url += rs.getString(3);
+					url += ";DatabaseName=";
+					url += rs.getString(4);
+					sourceType = "sqlServer";
 				}
 				sourceUser = rs.getString(5);
 				sourcePwd = rs.getString(6);	
@@ -131,7 +144,12 @@ public class DbConfigService {
 			DbUtil.closeAll(rs, stmt, dbConn);
 		}	
 		try {
-			dbConn = DbUtil.getConnection(url,sourceUser,sourcePwd);
+			if (sourceType.equals("oracle")) {
+				dbConn = DbUtil.getConnection(url,sourceUser,sourcePwd);
+			} else if (sourceType.equals("sqlServer")) {
+//				dbConn = DbUtil.getSqlserverConnection("jdbc:jtds:sqlserver://192.168.0.195:1433;DatabaseName=a","sa","pass");
+				dbConn = DbUtil.getSqlserverConnection(url,sourceUser,sourcePwd);
+			}
 			if (dbConn != null) {
 				return true;
 			} else {
@@ -149,14 +167,14 @@ public class DbConfigService {
 	public static String addTargetDbConfig(String dbType, String dbIp, String dbPort, String dbSid, String dbUser,
 			String dbPassword) {
 		Connection dbConn = null;
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		ResultSet rs = null;
 		String szSql = "";
 		try {
 			dbConn = DbUtil.getConnection();
 			szSql = String.format("select count(*) from SYNCHRON_CFG_DBCONN where DBTYPE ='%s' and DBIP ='%s' and DBPORT ='%s' and DBSID ='%s' and DBUSER ='%s' and DBPWD ='%s' ",dbType,dbIp,dbPort,dbSid,dbUser,dbPassword);
-			stmt = dbConn.prepareStatement(szSql);
-			rs = stmt.executeQuery();
+			stmt = dbConn.createStatement();
+			rs = stmt.executeQuery(szSql);
 			if (rs.next()) {
 				if (rs.getInt(1) > 0) {
 					return "此数据库配置已存在，添加目标数据库配置失败";
@@ -176,8 +194,8 @@ public class DbConfigService {
 		try {
 //			dbConn = DbUtil.getConnection();
 			szSql = String.format("insert into SYNCHRON_CFG_DBCONN (DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST,ID,TABLEPASSTEST) values ('%s','%s','%s','%s','%s','%s',1,0,S_SYNCHRON_CFG_DBCONN.nextval,0)", dbType,dbIp,dbPort,dbSid,dbUser,dbPassword);
-			stmt = dbConn.prepareStatement(szSql);
-			stmt.execute();	
+			stmt = dbConn.createStatement();
+			stmt.execute(szSql);	
 			DbUtil.closeST(stmt);
 		} catch (SQLException e) {
 			logger.error(String.format("addTargetDbConfig异常"+e.toString()));
@@ -195,13 +213,13 @@ public class DbConfigService {
 
 	public static boolean dropTargetDbConfig(String tableId) {
 		Connection dbConn = null;
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		String szSql = "";
 		try {
 			dbConn = DbUtil.getConnection();
 			szSql = String.format("delete from SYNCHRON_CFG_DBCONN  where ID='%s' ", tableId);
-			stmt = dbConn.prepareStatement(szSql);
-			stmt.execute();	
+			stmt = dbConn.createStatement();
+			stmt.execute(szSql);	
 			dropTargetTableConfig(tableId);
 		} catch (SQLException e) {
 			logger.error(String.format("dropTargetDbConfig异常"+e.toString()));
@@ -219,13 +237,13 @@ public class DbConfigService {
 
 	private static void dropTargetTableConfig(String tableId) {
 		Connection dbConn = null;
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		String szSql = "";
 		try {
 			dbConn = DbUtil.getConnection();
 			szSql = String.format("delete from SYNCHRON_CFG_TABLE  where TABLEID='%s' ", tableId);
-			stmt = dbConn.prepareStatement(szSql);
-			stmt.execute();	
+			stmt = dbConn.createStatement();
+			stmt.execute(szSql);	
 		} catch (SQLException e) {
 			logger.error(String.format("dropTargetTableConfig异常"+e.toString()));
 			e.printStackTrace();
@@ -311,14 +329,14 @@ public class DbConfigService {
 	public static String modifyTargetDbConfig(String tableId, String dbType, String dbIp, String dbPort, String dbSid,
 			String dbUser, String dbPassword) {
 		Connection dbConn = null;
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		String szSql = "";
 		ResultSet rs = null;
 		try {
 			dbConn = DbUtil.getConnection();
 			szSql = String.format("select count(*) from SYNCHRON_CFG_DBCONN where DBTYPE ='%s' and DBIP ='%s' and DBPORT ='%s' and DBSID ='%s' and DBUSER ='%s' and DBPWD ='%s' and id != '%s' ",dbType,dbIp,dbPort,dbSid,dbUser,dbPassword,tableId);
-			stmt = dbConn.prepareStatement(szSql);
-			rs = stmt.executeQuery();
+			stmt = dbConn.createStatement();
+			rs = stmt.executeQuery(szSql);
 			if (rs.next()) {
 				if (rs.getInt(1) > 0) {
 					return "此数据库配置已存在，修改目标数据库配置失败";
@@ -338,8 +356,8 @@ public class DbConfigService {
 		try {
 //			dbConn = DbUtil.getConnection();
 			szSql = String.format("update SYNCHRON_CFG_DBCONN  set DBTYPE='%s',DBIP='%s',DBPORT='%s',DBSID='%s',DBUSER='%s',DBPWD='%s',PASSTEST=0,TABLEPASSTEST=0  where ID = '%s' ", dbType,dbIp,dbPort,dbSid,dbUser,dbPassword,tableId);
-			stmt = dbConn.prepareStatement(szSql);
-			stmt.execute();	
+			stmt = dbConn.createStatement();
+			stmt.execute(szSql);	
 			DbUtil.closeST(stmt);
 		} catch (SQLException e) {
 			logger.error(String.format("modifyTargetDbConfig异常"+e.toString()));
@@ -358,13 +376,13 @@ public class DbConfigService {
 	public static void modifyTargetDbState(String dbType, String dbIp, String dbPort, String dbSid, String dbUser,
 			String dbPassword) {
 		Connection dbConn = null;
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		String szSql = "";
 		try {
 			dbConn = DbUtil.getConnection();
 			szSql = String.format("update SYNCHRON_CFG_DBCONN  set  PASSTEST=1 where  DBTYPE='%s' and DBIP='%s' and DBPORT='%s' and DBSID='%s' and DBUSER='%s' and DBPWD='%s' ", dbType,dbIp,dbPort,dbSid,dbUser,dbPassword);
-			stmt = dbConn.prepareStatement(szSql);
-			stmt.execute();	
+			stmt = dbConn.createStatement();
+			stmt.execute(szSql);	
 			DbUtil.closeST(stmt);
 		} catch (SQLException e) {
 			logger.error(String.format("modifyDbState异常"+e.toString()));

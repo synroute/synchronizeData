@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +32,7 @@ import net.sf.json.JSONObject;
 */
 public class TableConfigService {
 	public static Logger logger = Logger.getLogger(TableConfigService.class);
+	@SuppressWarnings("resource")
 	public static JSONArray getAllTableFromSource() {
 		JSONArray tableInfo = new JSONArray();
 		Connection dbConn = null;
@@ -40,6 +42,8 @@ public class TableConfigService {
 		String url = "";
 		String sourceUser = "";
 		String sourcePwd = "";
+		String sourceType = "";
+		String dbName = "";
 		try {
 			dbConn = DbUtil.getConnection();
 			szSql = "select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST from SYNCHRON_CFG_DBCONN where type =0";
@@ -53,7 +57,17 @@ public class TableConfigService {
 					url += rs.getString(3);
 					url += ":";
 					url += rs.getString(4);
+					sourceType = "oracle";
+				} else if (rs.getString(1).equals("sqlServer")) {
+					url += "jdbc:jtds:sqlserver://";
+					url += rs.getString(2);
+					url += ":";
+					url += rs.getString(3);
+					url += ";DatabaseName=";
+					url += rs.getString(4);
+					sourceType = "sqlServer";
 				}
+				dbName =  rs.getString(4);
 				sourceUser = rs.getString(5);
 				sourcePwd = rs.getString(6);	
 			}
@@ -65,8 +79,13 @@ public class TableConfigService {
 			DbUtil.closeAll(rs, stmt, dbConn);
 		}	
 		try {
-			dbConn = DbUtil.getConnection(url,sourceUser,sourcePwd);
-			szSql = "SELECT TABLE_NAME FROM USER_TABLES order by TABLE_NAME";
+			if (sourceType.equals("oracle")) {
+				dbConn = DbUtil.getConnection(url,sourceUser,sourcePwd);
+				szSql = "SELECT TABLE_NAME FROM USER_TABLES order by TABLE_NAME";
+			} else if (sourceType.equals("sqlServer")) {
+				dbConn = DbUtil.getSqlserverConnection(url,sourceUser,sourcePwd);
+				szSql = String.format("SELECT name FROM %s..sysobjects Where xtype='U' ORDER BY name", dbName);
+			}
 			stmt = dbConn.prepareStatement(szSql);
 			rs = stmt.executeQuery();
 			while (rs.next()) {
@@ -84,20 +103,22 @@ public class TableConfigService {
 		return tableInfo;
 	}
 
+	@SuppressWarnings("resource")
 	public static JSONArray getAllFieldByTableName(String tableName) {
 		JSONArray fieldInfo = new JSONArray();
 		Connection dbConn = null;
 		String szSql = "";
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		ResultSet rs = null;
 		String url = "";
 		String sourceUser = "";
 		String sourcePwd = "";
+		String sourceType = "";
 		try {
 			dbConn = DbUtil.getConnection();
 			szSql = "select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST from SYNCHRON_CFG_DBCONN where type =0";
-			stmt = dbConn.prepareStatement(szSql);
-			rs = stmt.executeQuery();
+			stmt = dbConn.createStatement();
+			rs = stmt.executeQuery(szSql);
 			if (rs.next()) {
 				if (rs.getString(1).equals("oracle")) {
 					url += "jdbc:oracle:thin:@";
@@ -106,6 +127,15 @@ public class TableConfigService {
 					url += rs.getString(3);
 					url += ":";
 					url += rs.getString(4);
+					sourceType = "oracle";
+				} else if (rs.getString(1).equals("sqlServer")) {
+					url += "jdbc:jtds:sqlserver://";
+					url += rs.getString(2);
+					url += ":";
+					url += rs.getString(3);
+					url += ";DatabaseName=";
+					url += rs.getString(4);
+					sourceType = "sqlServer";
 				}
 				sourceUser = rs.getString(5);
 				sourcePwd = rs.getString(6);	
@@ -118,10 +148,15 @@ public class TableConfigService {
 			DbUtil.closeAll(rs, stmt, dbConn);
 		}	
 		try {
-			dbConn = DbUtil.getConnection(url,sourceUser,sourcePwd);
-			szSql = String.format("SELECT b.COLUMN_NAME,b.DATA_TYPE,a.COMMENTS FROM USER_TAB_COLUMNS b,USER_COL_COMMENTS a WHERE b.TABLE_NAME = '%s' AND b.TABLE_NAME = a.TABLE_NAME AND b.COLUMN_NAME = a.COLUMN_NAME", tableName) ;
-			stmt = dbConn.prepareStatement(szSql);
-			rs = stmt.executeQuery();
+			if (sourceType.equals("oracle")) {
+				dbConn = DbUtil.getConnection(url,sourceUser,sourcePwd);
+				szSql = String.format("SELECT b.COLUMN_NAME,b.DATA_TYPE,a.COMMENTS FROM USER_TAB_COLUMNS b,USER_COL_COMMENTS a WHERE b.TABLE_NAME = '%s' AND b.TABLE_NAME = a.TABLE_NAME AND b.COLUMN_NAME = a.COLUMN_NAME", tableName) ;
+			} else if (sourceType.equals("sqlServer")) {
+				dbConn = DbUtil.getSqlserverConnection(url,sourceUser,sourcePwd);
+				szSql = String.format("select column_name,data_type from information_schema.columns where table_name = '%s' ",tableName);
+			}
+			stmt = dbConn.createStatement();
+			rs = stmt.executeQuery(szSql);
 			JSONObject defaultField = new JSONObject();
 			defaultField.put("fieldName", "无标识列");
 			defaultField.put("fieldType", "无");
@@ -131,7 +166,7 @@ public class TableConfigService {
 				JSONObject field = new JSONObject();
 				field.put("fieldName", rs.getString(1));
 				field.put("fieldType", rs.getString(2));
-				field.put("comments", rs.getString(3));
+//				field.put("comments", rs.getString(3));
 				fieldInfo.add(field);
 			}
 		} catch (Exception e) {
@@ -146,7 +181,7 @@ public class TableConfigService {
 
 	public static boolean saveTableAndField(String data) {
 		Connection dbConn = null;
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		String szSql = "";
 		ResultSet rs = null;
 		int tableId = 0;
@@ -155,8 +190,8 @@ public class TableConfigService {
 			dbConn = DbUtil.getConnection();
 			dbConn.setAutoCommit(false);	
 			szSql = String.format("SELECT ID FROM SYNCHRON_CFG_DBCONN  where TYPE= 1") ;
-			PreparedStatement stmt2 = dbConn.prepareStatement(szSql);
-			ResultSet rs2 = stmt2.executeQuery();
+			Statement stmt2 = dbConn.createStatement();
+			ResultSet rs2 = stmt2.executeQuery(szSql);
 			while (rs2.next()) {
 				tableId = rs2.getInt(1);
 				JsonParser jsonParser=new JsonParser();
@@ -170,23 +205,23 @@ public class TableConfigService {
 					tableNames.add(mapTableName);
 					int count = 0;
 					szSql = String.format("SELECT count(*) FROM SYNCHRON_CFG_TABLE  where TABLENAME='%s' and FIELD ='%s' and TABLEID = %d ", tableName,fieldName,tableId) ;
-					stmt = dbConn.prepareStatement(szSql);
-					rs = stmt.executeQuery();
+					stmt = dbConn.createStatement();
+					rs = stmt.executeQuery(szSql);
 					if (rs.next()) {
 						count = rs.getInt(1);
 					}
 					DbUtil.closeRs(rs,stmt);
 					if(count == 0) {
 						szSql = String.format("delete from  SYNCHRON_CFG_TABLE  where TABLENAME ='%s' and TABLEID = %d",tableName,tableId);
-						stmt = dbConn.prepareStatement(szSql);
-						stmt.execute();	
+						stmt = dbConn.createStatement();
+						stmt.execute(szSql);	
 						DbUtil.closeST(stmt);
 						//同步删除目标数据库里的相应表的数据
 						dropDataFromTargetDb(tableName,tableId);
 						
 						szSql = String.format("insert into SYNCHRON_CFG_TABLE (TABLENAME,FIELD,TABLEID) values ('%s','%s',%d)", tableName,fieldName,tableId);
-						stmt = dbConn.prepareStatement(szSql);
-						stmt.execute();	
+						stmt = dbConn.createStatement();
+						stmt.execute(szSql);	
 						DbUtil.closeST(stmt);					
 					}	
 				}
@@ -204,8 +239,8 @@ public class TableConfigService {
 			}
 			deletesql = deletesql.substring(0,deletesql.length() - 1);
 			deletesql+=")";
-			stmt = dbConn.prepareStatement(deletesql);
-			stmt.execute();	
+			stmt = dbConn.createStatement();
+			stmt.execute(deletesql);	
 			DbUtil.closeST(stmt);
 			
 //			DbUtil.closeAll(rs2,stmt2,dbConn);
@@ -242,7 +277,7 @@ public class TableConfigService {
 	private static void dropDataFromTargetDb(String tableName, int tableId) {
 		Connection dbConn = null;
 		String szSql = "";
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		ResultSet rs = null;
 		String url = "";
 		String sourceUser = "";
@@ -250,8 +285,8 @@ public class TableConfigService {
 		try {
 			dbConn = DbUtil.getConnection();
 			szSql = String.format("select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST from SYNCHRON_CFG_DBCONN where type =1 and id = '%s'", tableId) ;
-			stmt = dbConn.prepareStatement(szSql);
-			rs = stmt.executeQuery();
+			stmt = dbConn.createStatement();
+			rs = stmt.executeQuery(szSql);
 			if (rs.next()) {
 				if (rs.getString(1).equals("oracle")) {
 					url += "jdbc:oracle:thin:@";
@@ -275,8 +310,8 @@ public class TableConfigService {
 			//重新获取连接
 			dbConn = DbUtil.getConnection(url,sourceUser,sourcePwd);
 			szSql = String.format("delete from '%s'", tableName);
-			stmt = dbConn.prepareStatement(szSql);
-			stmt.execute();	
+			stmt = dbConn.createStatement();
+			stmt.execute(szSql);	
 		} catch (Exception e) {
 			logger.error(String.format("dropDataFromTargetDb"+szSql));
 			e.printStackTrace();
@@ -319,13 +354,13 @@ public class TableConfigService {
 		JSONArray targetInfo = new JSONArray();
 		Connection dbConn = null;
 		String szSql = "";
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		ResultSet rs = null;
 		try {
 			dbConn = DbUtil.getConnection();
 			szSql = "select DBTYPE,DBIP,DBPORT,DBSID,DBUSER,DBPWD,TYPE,PASSTEST,ID from SYNCHRON_CFG_DBCONN where type =1";
-			stmt = dbConn.prepareStatement(szSql);
-			rs = stmt.executeQuery();
+			stmt = dbConn.createStatement();
+			rs = stmt.executeQuery(szSql);
 			while (rs.next()) {
 				String url = "";
 				String user = "";
@@ -363,9 +398,10 @@ public class TableConfigService {
 				int dbId = Integer.valueOf(jsonObject.getString("dbId"));
 				dbConn = DbUtil.getConnection(url2,user2,pwd2);
 				int count = 0;
-				szSql = String.format("SELECT count(*) FROM USER_TABLES where TABLE_NAME = '%s'", tableName);
-				stmt = dbConn.prepareStatement(szSql);
-				rs = stmt.executeQuery();
+				String tableName2 = tableName.toUpperCase();
+				szSql = String.format("SELECT count(*) FROM USER_TABLES where TABLE_NAME = '%s'", tableName2);
+				stmt = dbConn.createStatement();
+				rs = stmt.executeQuery(szSql);
 				if (rs.next()) {
 					count = rs.getInt(1);
 					updateDbStateInfo(1,dbId);
@@ -392,13 +428,13 @@ public class TableConfigService {
 
 	private static void updateDbStateInfo(int num, int dbId) {
 		Connection dbConn = null;
-		PreparedStatement stmt = null;
+		Statement stmt = null;
 		String szSql = "";
 		try {
 			dbConn = DbUtil.getConnection();
 			szSql = String.format("update SYNCHRON_CFG_DBCONN  set TABLEPASSTEST=%d  where TYPE =1 and ID =%d",num,dbId);
-			stmt = dbConn.prepareStatement(szSql);
-			stmt.execute();	
+			stmt = dbConn.createStatement();
+			stmt.execute(szSql);	
 		} catch (SQLException e) {
 			logger.error(String.format("updateDbStateInfo异常"+e.toString()));
 			e.printStackTrace();

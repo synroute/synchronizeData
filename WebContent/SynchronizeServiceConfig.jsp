@@ -47,7 +47,7 @@
 						 <div class="item" style="width:80%;margin-top:10px;">
 						        <select id="sourceDatabaseType" class="easyui-combobox" name="dept" style="width:90%;" data-options="label:'数据库类型',labelAlign:'right',editable:false,">   
 								    <option value="oracle">oracle</option>
-								    <option value="mySQL">mySQL</option>   
+								    <option value="sqlServer">sqlServer</option>   
 								</select>
 						    </div>
 						     <div class="item" style="width:80%">
@@ -193,6 +193,7 @@
 	    	<div style="width:100%;height:80%;margin-top:10px;">
 	    		<div class="item" style="margin:0 auto;width:45%;">
 		    		<select id="synTime" class="easyui-combobox" name="dept" style="width:40%;" data-options="label:'同步时间',labelAlign:'right',editable:false,">   
+					  	 <option value="1">1</option>
 					    <option value="5">5</option>
 					    <option value="10">10</option>
 					    <option value="15">15</option>

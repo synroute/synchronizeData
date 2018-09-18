@@ -41,7 +41,20 @@ public class DbUtil {
 	}
 	
 	public static Connection getConnection(String url2,String user2,String password2) throws Exception{
+		Class.forName("oracle.jdbc.driver.OracleDriver");
 		return DriverManager.getConnection(url2, user2, password2);
+	}
+	public static Connection getSqlserverConnection(String url2,String user2,String password2) throws Exception{
+		Class.forName("net.sourceforge.jtds.jdbc.Driver");
+		return DriverManager.getConnection(url2, user2, password2);
+	}
+	
+	public static Connection getMysqlConnection(String dbName,String user2,String password2) throws Exception{
+		Class.forName("com.mysql.jdbc.Driver");
+//		String url ="jdbc:mysql://localhost/myDB?user=soft&password=soft1234&useUnicode=true&characterEncoding=8859_1";
+		String url =String.format("jdbc:mysql://localhost/%s?user=%s&password=%s&useUnicode=true&characterEncoding=UTF-8",dbName,user2,password2);		
+		//myDB为数据库名 
+		return DriverManager.getConnection(url); 
 	}
 	
 	public static void closeAll(ResultSet rs,Statement stmt,Connection conn){
